@@ -1,0 +1,116 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: Build mod package and publish release
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Download build data
+        run: python tools/build_data.py download
+
+      - name: Build mod package
+        run: python main.py
+
+      - name: Resolve release metadata
+        id: meta
+        shell: bash
+        run: |
+          version="$(python -c 'import json; print(json.load(open("version.json", encoding="utf-8"))["version"])')"
+          if [[ -z "${version}" ]]; then
+            echo "version.json must contain a non-empty version field" >&2
+            exit 1
+          fi
+
+          if [[ "${version}" == v* ]]; then
+            version_tag="${version}"
+          else
+            version_tag="v${version}"
+          fi
+
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            tag="${GITHUB_REF_NAME}"
+          else
+            tag="${version_tag}"
+          fi
+
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+
+      - name: Ensure release tag exists
+        if: github.ref_type != 'tag'
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          git fetch --tags --force
+          if git rev-parse -q --verify "refs/tags/${RELEASE_TAG}" >/dev/null; then
+            echo "Tag ${RELEASE_TAG} already exists."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${RELEASE_TAG}" -m "Release ${RELEASE_TAG}" "${GITHUB_SHA}"
+          git push origin "refs/tags/${RELEASE_TAG}"
+
+      - name: Check build artifacts
+        shell: bash
+        run: |
+          shopt -s nullglob
+          zips=(output/*.zip)
+          if (( ${#zips[@]} != 1 )); then
+            printf 'Expected exactly one zip in output/, found %s\n' "${#zips[@]}" >&2
+            exit 1
+          fi
+          test -s output/output.log
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: Better4KHDTexture-${{ steps.meta.outputs.version }}
+          path: |
+            output/*.zip
+            output/output.log
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ steps.meta.outputs.tag }}
+          RELEASE_TITLE: Better 4K HD Texture ${{ steps.meta.outputs.version }}
+        run: |
+          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            gh release upload "${RELEASE_TAG}" output/*.zip output/output.log --clobber
+          else
+            gh release create "${RELEASE_TAG}" output/*.zip output/output.log \
+              --title "${RELEASE_TITLE}" \
+              --notes "Automated build for Better4KHDTexture ${RELEASE_TAG}."
+          fi

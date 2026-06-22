@@ -1,0 +1,27 @@
+# Build output
+output/
+.temp/
+
+# Large build data stored as GitHub Release assets
+data/il2cpp_dump.json
+data/rszMHWS.json
+
+# Python cache and local environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# Editor and OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+.agents/
+.codex/
+.claude/
+.codex*/
