@@ -13,16 +13,21 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parent
 DEFAULT_TAG = "build-data"
 DEFAULT_WORK_DIR = REPO_ROOT / ".temp" / "build_data"
 DEFAULT_RELEASE_TITLE = "Build Data (for automated builds)"
-DEFAULT_RELEASE_NOTES = """## Build Data
+DEFAULT_RELEASE_NOTES = """## 构建数据 / Build Data
 
-This release stores large build-only JSON files for GitHub Actions.
-Regular users should download the mod package from the normal release tags instead.
+> [!IMPORTANT]
+> 该 Release 仅供 GitHub Actions 自动构建使用，普通用户不需要下载这里的文件。
+>
+> This release is only for automated GitHub Actions builds. Regular users do not need to download these files.
+
+请前往正式 Release 页面下载 MOD 压缩包。
+
+Please download the mod archives from the normal Releases page.
 """
 CHUNK_SIZE = 1024 * 1024
 GH_RETRIES = 3
@@ -79,7 +84,9 @@ def run_command(
     allow_failure: bool = False,
     retries: int | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    attempts = retries if retries is not None else (GH_RETRIES if args[:1] == ["gh"] else 1)
+    attempts = (
+        retries if retries is not None else (GH_RETRIES if args[:1] == ["gh"] else 1)
+    )
     last_result: subprocess.CompletedProcess[str] | None = None
     for attempt in range(1, attempts + 1):
         retry_note = f" (attempt {attempt}/{attempts})" if attempts > 1 else ""
@@ -141,7 +148,9 @@ def detect_repo(explicit_repo: str | None) -> str:
     if result.returncode == 0 and result.stdout.strip():
         return result.stdout.strip()
 
-    raise RuntimeError("GitHub repository could not be detected; pass --repo owner/name.")
+    raise RuntimeError(
+        "GitHub repository could not be detected; pass --repo owner/name."
+    )
 
 
 def compress_file(src_path: Path, dst_path: Path, compresslevel: int) -> None:
@@ -164,7 +173,9 @@ def decompress_file(src_path: Path, dst_path: Path) -> None:
 
 
 def write_checksum(checksum_path: Path, digest: str, asset_name: str) -> None:
-    checksum_path.write_text(f"{digest}  {asset_name}\n", encoding="utf-8", newline="\n")
+    checksum_path.write_text(
+        f"{digest}  {asset_name}\n", encoding="utf-8", newline="\n"
+    )
 
 
 def read_expected_checksum(checksum_path: Path) -> str:
@@ -376,7 +387,9 @@ def download_command(args: argparse.Namespace) -> None:
 
 
 def add_common_release_args(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--repo", help="GitHub repository as owner/name. Defaults to env or git remote.")
+    parser.add_argument(
+        "--repo", help="GitHub repository as owner/name. Defaults to env or git remote."
+    )
     parser.add_argument("--tag", default=DEFAULT_TAG)
     parser.add_argument(
         "--file",
@@ -386,21 +399,31 @@ def add_common_release_args(parser: argparse.ArgumentParser) -> None:
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Upload or download large build-only data assets.")
+    parser = argparse.ArgumentParser(
+        description="Upload or download large build-only data assets."
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    list_parser = subparsers.add_parser("list", help="List configured build data assets.")
+    list_parser = subparsers.add_parser(
+        "list", help="List configured build data assets."
+    )
     list_parser.set_defaults(func=list_command)
 
-    upload_parser = subparsers.add_parser("upload", help="Compress and upload build data assets.")
+    upload_parser = subparsers.add_parser(
+        "upload", help="Compress and upload build data assets."
+    )
     add_common_release_args(upload_parser)
-    upload_parser.add_argument("--compresslevel", type=int, choices=range(1, 10), default=9)
+    upload_parser.add_argument(
+        "--compresslevel", type=int, choices=range(1, 10), default=9
+    )
     upload_parser.add_argument("--dry-run", action="store_true")
     upload_parser.add_argument("--release-title", default=DEFAULT_RELEASE_TITLE)
     upload_parser.add_argument("--release-notes", default=DEFAULT_RELEASE_NOTES)
     upload_parser.set_defaults(func=upload_command)
 
-    download_parser = subparsers.add_parser("download", help="Download and unpack build data assets.")
+    download_parser = subparsers.add_parser(
+        "download", help="Download and unpack build data assets."
+    )
     add_common_release_args(download_parser)
     download_parser.add_argument("--work-dir", type=Path, default=DEFAULT_WORK_DIR)
     download_parser.set_defaults(func=download_command)

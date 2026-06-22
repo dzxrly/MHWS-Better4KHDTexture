@@ -106,7 +106,7 @@ utils.patches.patch_graphics_preset
 
 目标定义位置：
 
-utils/__init__.py
+`utils/__init__.py`
 
 结构定位常量：
 
@@ -216,7 +216,7 @@ utils.patches.patch_app_streaming
 
 目标定义位置：
 
-utils/__init__.py
+`utils/__init__.py`
 
 只修改 _PlatformData 中 _Platform 为 0 和 1 的项目，对应 Default 与 PC。目标列表为 _ProtectData 和 _ProtectDataEventPlaying。
 
