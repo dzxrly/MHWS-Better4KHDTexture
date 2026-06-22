@@ -3,8 +3,8 @@ output/
 .temp/
 
 # Large build data stored as GitHub Release assets
-data/il2cpp_dump.json
-data/rszMHWS.json
+data/*.json
+!data/Enums_Internal.json
 
 # Python cache and local environments
 __pycache__/
