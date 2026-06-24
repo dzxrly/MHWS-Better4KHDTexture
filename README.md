@@ -6,6 +6,15 @@ streaming 预算、纹理分辨率、LOD 距离、光追质量和部分 mesh/采
 实测参考：3440x1440、光追开启、DLSS M 预设质量档、DLSS 3x 补帧、其他画质选项全高时，大集会所显存占用约 21GB。请只在显存充足的
 PC 上使用。
 
+<div align="center">
+<a href="https://github.com/dzxrly/PyREUser3">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/dzxrly/PyREUser3/branding/powered-by-pyreuser3-simple-dark.svg">
+    <img alt="Powered by PyREUser3" src="https://raw.githubusercontent.com/dzxrly/PyREUser3/branding/powered-by-pyreuser3-simple-light.svg">
+  </picture>
+</a>
+</div>
+
 ## 安装
 
 从 GitHub Releases 下载 `Better4KHDTexture_<version>.zip`，解压后将其中的 `natives` 目录放到游戏根目录，并在 REFramework
