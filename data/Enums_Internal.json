@@ -890,7 +890,6 @@
     "EXEC": 1,
     "FINISHED": 3
   },
-  "ace.CAMERA_EFFECT_TYPE_ACE": {},
   "ace.CameraDef.ATTACH_PARAM_PRIORITY": {
     "LV_1": 0,
     "LV_2": 1,
@@ -1417,15 +1416,6 @@
     "WAIT_INSTANTIATE": 2,
     "WAIT_REQUEST": 0
   },
-  "ace.GUIBase`2.BASE_FLAG<!0,!1>": {
-    "ALWAYS_OPEN": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "MAX": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "PREV_INPUT_TARGET": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "REQUEST_CHANGE_INPUT": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "REQUEST_CLOSE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "REQUEST_OPEN": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "REQUEST_SHUTDOWN": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
-  },
   "ace.GUIBase`2.BASE_FLAG<app.GUIID.ID,app.GUIFunc.TYPE>": {
     "ALWAYS_OPEN": 5,
     "MAX": 6,
@@ -1435,48 +1425,12 @@
     "REQUEST_OPEN": 0,
     "REQUEST_SHUTDOWN": 2
   },
-  "ace.GUIBase`2.BASE_FLAG[[GUIID, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null],[FUNC_ENUM, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": {
-    "ALWAYS_OPEN": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "MAX": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "PREV_INPUT_TARGET": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "REQUEST_CHANGE_INPUT": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "REQUEST_CLOSE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "REQUEST_OPEN": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "REQUEST_SHUTDOWN": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
-  },
-  "ace.GUIBase`2.BASE_STATE<!0,!1>": {
-    "CLOSE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "MAX": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "OPEN": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "VISIBLE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "WAIT": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
-  },
   "ace.GUIBase`2.BASE_STATE<app.GUIID.ID,app.GUIFunc.TYPE>": {
     "CLOSE": 3,
     "MAX": 4,
     "OPEN": 1,
     "VISIBLE": 2,
     "WAIT": 0
-  },
-  "ace.GUIBase`2.BASE_STATE[[GUIID, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null],[FUNC_ENUM, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": {
-    "CLOSE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "MAX": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "OPEN": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "VISIBLE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "WAIT": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
-  },
-  "ace.GUIBase`2.BASE_TRIGGER<!0,!1>": {
-    "DISABLE_INPUT": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "END_FADEIN": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "END_FADEOUT": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "FADEIN": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "FADEOUT": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "FORCE_INVISIBLE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "MAX": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "TO_VISIBLE_STATE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "UPDATE_MOUSE_SELECT": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "VISIBLE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "WAIT_DECIDE_FUNC": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
   },
   "ace.GUIBase`2.BASE_TRIGGER<app.GUIID.ID,app.GUIFunc.TYPE>": {
     "DISABLE_INPUT": 6,
@@ -1490,19 +1444,6 @@
     "UPDATE_MOUSE_SELECT": 9,
     "VISIBLE": 0,
     "WAIT_DECIDE_FUNC": 8
-  },
-  "ace.GUIBase`2.BASE_TRIGGER[[GUIID, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null],[FUNC_ENUM, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": {
-    "DISABLE_INPUT": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "END_FADEIN": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "END_FADEOUT": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "FADEIN": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "FADEOUT": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "FORCE_INVISIBLE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "MAX": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "TO_VISIBLE_STATE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "UPDATE_MOUSE_SELECT": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "VISIBLE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "WAIT_DECIDE_FUNC": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
   },
   "ace.GUIDef.BUTTON_NO_LINK": {
     "MAX": 4,
@@ -1529,23 +1470,11 @@
     "MOVE_INSIDE_SCROLL_AREA": 2,
     "NONE": 0
   },
-  "ace.GUIDef.CTRL_GUI`2.CTRL_FLAG<!0,!1>": {
-    "CLOSE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "MAX": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "OPEN": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "OPEN_WITH_INSTANTIATE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
-  },
   "ace.GUIDef.CTRL_GUI`2.CTRL_FLAG<app.GUIID.ID,app.GUIFunc.TYPE>": {
     "CLOSE": 2,
     "MAX": 3,
     "OPEN": 0,
     "OPEN_WITH_INSTANTIATE": 1
-  },
-  "ace.GUIDef.CTRL_GUI`2.CTRL_FLAG[[GUIID, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null],[FUNC_ENUM, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": {
-    "CLOSE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "MAX": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "OPEN": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "OPEN_WITH_INSTANTIATE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
   },
   "ace.GUIDef.INPUT_DEVICE": {
     "INVALID": 4,
@@ -1665,14 +1594,6 @@
     "NONE": 0,
     "UPDATING": 2
   },
-  "ace.GUIManagerBase`2.BASE_TRIGGER<!0,!1>": {
-    "CURSOR_CLICKABLE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "CURSOR_DECIDE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "CURSOR_DECIDE_ON": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "CURSOR_DISABLE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "CURSOR_FORCE_ENABLE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "MAX": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
-  },
   "ace.GUIManagerBase`2.BASE_TRIGGER<app.GUIID.ID,app.GUIFunc.TYPE>": {
     "CURSOR_CLICKABLE": 0,
     "CURSOR_DECIDE": 1,
@@ -1680,14 +1601,6 @@
     "CURSOR_DISABLE": 4,
     "CURSOR_FORCE_ENABLE": 3,
     "MAX": 5
-  },
-  "ace.GUIManagerBase`2.BASE_TRIGGER[[GUIID, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null],[FUNC_ENUM, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": {
-    "CURSOR_CLICKABLE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "CURSOR_DECIDE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "CURSOR_DECIDE_ON": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "CURSOR_DISABLE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "CURSOR_FORCE_ENABLE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "MAX": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
   },
   "ace.GameFlowManagerBase.PHASE": {
     "EXEC_CONNECTOR": 6,
@@ -2499,20 +2412,10 @@
     "NONE": 0,
     "OBJECT": 3
   },
-  "ace.WorkRateManagerBase`1.WorkRateSetting.UpdateTiming<!0>": {
-    "LATE_UPDATE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "MANUAL": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "UPDATE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
-  },
   "ace.WorkRateManagerBase`1.WorkRateSetting.UpdateTiming<app.WorkRate.REQUEST_TYPE>": {
     "LATE_UPDATE": 1,
     "MANUAL": 2,
     "UPDATE": 0
-  },
-  "ace.WorkRateManagerBase`1.WorkRateSetting.UpdateTiming[[REQUEST_TYPE, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": {
-    "LATE_UPDATE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "MANUAL": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "UPDATE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
   },
   "ace.Wp03Shell.FixedID": {
     "AIM_WEAK_SLASH_DELAY_HIT": 16,
@@ -2869,20 +2772,10 @@
     "CAN_SELECT": 1,
     "ENABLE": 2
   },
-  "ace.cGUIHelpTextInfo`2.HELP_TEXT_TYPE<!0,!1>": {
-    "CONTROL": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "GUI": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "ITEM": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
-  },
   "ace.cGUIHelpTextInfo`2.HELP_TEXT_TYPE<app.GUIID.ID,app.GUIFunc.TYPE>": {
     "CONTROL": 1,
     "GUI": 0,
     "ITEM": 2
-  },
-  "ace.cGUIHelpTextInfo`2.HELP_TEXT_TYPE[[GUIID, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null],[FUNC_ENUM, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": {
-    "CONTROL": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "GUI": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "ITEM": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
   },
   "ace.cGUIInputCtrlDef.EVENT_TYPE": {
     "CANCEL_EVENT": 2,
@@ -2897,38 +2790,16 @@
     "UPDATE_INPUT_ENABLE_SETTING": 7,
     "UPDATE_ITEM_NUM": 8
   },
-  "ace.cGUIInputCtrl`2.ENABLE_SELECT_ITEM_CHILD_OPTION<!0,!1>": {
-    "DISABLE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "NONE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "UPDATE_IMMEDIATELY": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
-  },
   "ace.cGUIInputCtrl`2.ENABLE_SELECT_ITEM_CHILD_OPTION<app.GUIID.ID,app.GUIFunc.TYPE>": {
     "DISABLE": 2,
     "NONE": 0,
     "UPDATE_IMMEDIATELY": 1
-  },
-  "ace.cGUIInputCtrl`2.ENABLE_SELECT_ITEM_CHILD_OPTION[[GUIID, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null],[FUNC_ENUM, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": {
-    "DISABLE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "NONE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "UPDATE_IMMEDIATELY": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
-  },
-  "ace.cGUIInputCtrl`2.WAIT_DECIDE_ANIM<!0,!1>": {
-    "DECIDE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "DECIDE_LONG": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "MOUSE_DECIDE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "NONE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
   },
   "ace.cGUIInputCtrl`2.WAIT_DECIDE_ANIM<app.GUIID.ID,app.GUIFunc.TYPE>": {
     "DECIDE": 1,
     "DECIDE_LONG": 2,
     "MOUSE_DECIDE": 3,
     "NONE": 0
-  },
-  "ace.cGUIInputCtrl`2.WAIT_DECIDE_ANIM[[GUIID, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null],[FUNC_ENUM, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": {
-    "DECIDE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "DECIDE_LONG": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "MOUSE_DECIDE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "NONE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
   },
   "ace.cGUIMessageInfo.ParamType": {
     "FLOAT": 4,
@@ -2944,20 +2815,10 @@
     "NO": 1,
     "YES": 0
   },
-  "ace.cGUIScrollBarController`2.CURSOR_TYPE<!0,!1>": {
-    "CURSOR_FOLLOW_OUTAREA": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "NORMAL": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "NOT_CURSOR_FOLLOW": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
-  },
   "ace.cGUIScrollBarController`2.CURSOR_TYPE<app.GUIID.ID,app.GUIFunc.TYPE>": {
     "CURSOR_FOLLOW_OUTAREA": 2,
     "NORMAL": 0,
     "NOT_CURSOR_FOLLOW": 1
-  },
-  "ace.cGUIScrollBarController`2.CURSOR_TYPE[[GUIID, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null],[FUNC_ENUM, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": {
-    "CURSOR_FOLLOW_OUTAREA": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "NORMAL": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "NOT_CURSOR_FOLLOW": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
   },
   "ace.cGUISystemModuleButtonAssignDef.ASSIGN_DISP_GROUP": {
     "GROUP_00": 0,
@@ -2990,17 +2851,9 @@
     "MAX": 2,
     "NORMAL": 0
   },
-  "ace.cGUISystemModuleNotifyWindow`2.STATE<!0,!1>": {
-    "OPEN": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "WAIT": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
-  },
   "ace.cGUISystemModuleNotifyWindow`2.STATE<app.GUIID.ID,app.GUIFunc.TYPE>": {
     "OPEN": 1,
     "WAIT": 0
-  },
-  "ace.cGUISystemModuleNotifyWindow`2.STATE[[GUIID, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null],[FUNC_ENUM, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": {
-    "OPEN": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "WAIT": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
   },
   "ace.cGameInput.PAD_SPECIAL_KEY_TYPE": {
     "L2": 3,
@@ -3584,23 +3437,11 @@
     "SPHERE": 4,
     "TRIANGLE": 7
   },
-  "ace.voxel.VoxelDataManagerCore`3.REGIST_DATA.STATE<!0,!1,!2>": {
-    "ACTIVE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "ADD": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "IDLE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "REMOVE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
-  },
   "ace.voxel.VoxelDataManagerCore`3.REGIST_DATA.STATE<app.user_data.AppVoxelData,app.user_data.AppVoxelData.VOXEL_DATA,app.VOXEL_DATA_RW>": {
     "ACTIVE": 1,
     "ADD": 2,
     "IDLE": 0,
     "REMOVE": 3
-  },
-  "ace.voxel.VoxelDataManagerCore`3.REGIST_DATA.STATE[[T, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null],[TD, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null],[TRW, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": {
-    "ACTIVE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "ADD": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "IDLE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "REMOVE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
   },
   "ace_network.EnumAuthPlatformType": {
     "ALL": 7,
@@ -41931,7 +41772,6 @@
     "TO_CLOSE": 2,
     "TO_OPEN": 4
   },
-  "app.Em0008_00_Def.MULTI_PARTS": {},
   "app.Em0008_00_Def.PARTS": {
     "Body": 2,
     "Head": 0,
@@ -43055,7 +42895,6 @@
     "MAX": 2,
     "SUPER_BURST": 1
   },
-  "app.Em0150_00_Def.MULTI_PARTS": {},
   "app.Em0150_00_Def.PARTS": {
     "ARM_L": 3,
     "ARM_R": 2,
@@ -43082,7 +42921,6 @@
   "app.Em0150_00_Def.WEAK_POINT": {
     "WEAK_POINT": 0
   },
-  "app.Em0150_50_Def.MULTI_PARTS": {},
   "app.Em0150_50_Def.PARTS": {
     "ARM_L": 3,
     "ARM_R": 2,
@@ -44410,7 +44248,6 @@
     "R_FrontLeg": 5,
     "R_SideLeg": 7
   },
-  "app.Em0163_00_Def.WEAK_POINT": {},
   "app.Em0164Def.UNIQUE_STATE": {
     "TWO_LEG": 0
   },
@@ -44768,7 +44605,6 @@
     "MAX": 3,
     "S": 0
   },
-  "app.Em0165_00_Def.MULTI_PARTS": {},
   "app.Em0165_00_Def.PARTS": {
     "ARM": 5,
     "BASE": 4,
@@ -44777,13 +44613,11 @@
     "FENCE_L": 1,
     "FENCE_R": 2
   },
-  "app.Em0165_00_Def.PARTS_BREAK": {},
   "app.Em0165_00_Def.SCAR_POINT": {
     "FENCE_F": 0,
     "FENCE_L": 1,
     "FENCE_R": 2
   },
-  "app.Em0165_00_Def.WEAK_POINT": {},
   "app.Em0166Def.OPTION_TAG": {
     "HIGH_LEVEL": 0
   },
@@ -45087,24 +44921,16 @@
     "GROUND": 0,
     "TARGET": 1
   },
-  "app.Em1006_00_Def.MULTI_PARTS": {},
   "app.Em1006_00_Def.PARTS": {
     "Body": 0
   },
-  "app.Em1006_00_Def.PARTS_BREAK": {},
-  "app.Em1006_00_Def.SCAR_POINT": {},
-  "app.Em1006_00_Def.WEAK_POINT": {},
   "app.Em1022_00Shell.FixedID": {
     "Fart": 0
   },
-  "app.Em1022_00_Def.MULTI_PARTS": {},
   "app.Em1022_00_Def.PARTS": {
     "BODY": 1,
     "HEAD": 0
   },
-  "app.Em1022_00_Def.PARTS_BREAK": {},
-  "app.Em1022_00_Def.SCAR_POINT": {},
-  "app.Em1022_00_Def.WEAK_POINT": {},
   "app.Em1023Def.OPTION_TAG": {
     "SERVANT": 0
   },
@@ -45117,29 +44943,17 @@
   "app.Em1023_00Shell.FixedID": {
     "SnowBall": 0
   },
-  "app.Em1023_00_Def.MULTI_PARTS": {},
   "app.Em1023_00_Def.PARTS": {
     "BODY": 1,
     "HEAD": 0
   },
-  "app.Em1023_00_Def.PARTS_BREAK": {},
-  "app.Em1023_00_Def.SCAR_POINT": {},
-  "app.Em1023_00_Def.WEAK_POINT": {},
-  "app.Em1062_00_Def.MULTI_PARTS": {},
   "app.Em1062_00_Def.PARTS": {
     "BODY": 0
   },
-  "app.Em1062_00_Def.PARTS_BREAK": {},
-  "app.Em1062_00_Def.SCAR_POINT": {},
-  "app.Em1062_00_Def.WEAK_POINT": {},
-  "app.Em1150_00_Def.MULTI_PARTS": {},
   "app.Em1150_00_Def.PARTS": {
     "BODY": 1,
     "HEAD": 0
   },
-  "app.Em1150_00_Def.PARTS_BREAK": {},
-  "app.Em1150_00_Def.SCAR_POINT": {},
-  "app.Em1150_00_Def.WEAK_POINT": {},
   "app.Em1151Def.OPTION_TAG": {
     "IN_FENCE": 0
   },
@@ -45149,15 +44963,11 @@
   "app.Em1151Def.OPTION_TAG_Fixed": {
     "IN_FENCE": 3195252096
   },
-  "app.Em1151_00_Def.MULTI_PARTS": {},
   "app.Em1151_00_Def.PARTS": {
     "Body": 1,
     "Defence_Head": 2,
     "Head": 0
   },
-  "app.Em1151_00_Def.PARTS_BREAK": {},
-  "app.Em1151_00_Def.SCAR_POINT": {},
-  "app.Em1151_00_Def.WEAK_POINT": {},
   "app.Em1152Def.ACT_ATTR": {
     "CAUTION": 0
   },
@@ -45228,14 +45038,10 @@
     "STRUGGLE_LOOP": 3,
     "STRUGGLE_START": 2
   },
-  "app.Em1152_00_Def.MULTI_PARTS": {},
   "app.Em1152_00_Def.PARTS": {
     "Body": 1,
     "Head": 0
   },
-  "app.Em1152_00_Def.PARTS_BREAK": {},
-  "app.Em1152_00_Def.SCAR_POINT": {},
-  "app.Em1152_00_Def.WEAK_POINT": {},
   "app.Em1153_00Action.cToPinch.STATE": {
     "LOOP1": 1,
     "LOOP2": 2,
@@ -45245,14 +45051,10 @@
     "Max": 1,
     "PreyMeat": 0
   },
-  "app.Em1153_00_Def.MULTI_PARTS": {},
   "app.Em1153_00_Def.PARTS": {
     "BODY": 1,
     "HEAD": 0
   },
-  "app.Em1153_00_Def.PARTS_BREAK": {},
-  "app.Em1153_00_Def.SCAR_POINT": {},
-  "app.Em1153_00_Def.WEAK_POINT": {},
   "app.Em1154Def.OPTION_TAG": {
     "DESERT_SUBSTATE": 4,
     "FLY_HIGH": 0,
@@ -45275,13 +45077,10 @@
     "FLY_ROOST": 2771476864,
     "FULGURITE_ROOST": 1038637312
   },
-  "app.Em1154_00_Def.MULTI_PARTS": {},
   "app.Em1154_00_Def.PARTS": {
     "BODY": 0,
     "HEAD": 1
   },
-  "app.Em1154_00_Def.PARTS_BREAK": {},
-  "app.Em1154_00_Def.SCAR_POINT": {},
   "app.Em1154_00_Def.STORY_PATTERN": {
     "NONE": 0,
     "PATTERN_10_MS001030": 42,
@@ -45295,29 +45094,20 @@
     "PATTERN_8_MS001030": 40,
     "PATTERN_9_MS001030": 41
   },
-  "app.Em1154_00_Def.WEAK_POINT": {},
   "app.Em1155Def.UNIQUE_STATE": {
     "SHOAL": 0
   },
   "app.Em1155Def.UNIQUE_STATE_Fixed": {
     "SHOAL": 3441342144
   },
-  "app.Em1155_00_Def.MULTI_PARTS": {},
   "app.Em1155_00_Def.PARTS": {
     "BODY": 1,
     "HEAD": 0
   },
-  "app.Em1155_00_Def.PARTS_BREAK": {},
-  "app.Em1155_00_Def.SCAR_POINT": {},
-  "app.Em1155_00_Def.WEAK_POINT": {},
-  "app.Em1156_00_Def.MULTI_PARTS": {},
   "app.Em1156_00_Def.PARTS": {
     "BODY": 1,
     "HEAD": 0
   },
-  "app.Em1156_00_Def.PARTS_BREAK": {},
-  "app.Em1156_00_Def.SCAR_POINT": {},
-  "app.Em1156_00_Def.WEAK_POINT": {},
   "app.Em1157Def.BOIL_ACT_STATE": {
     "ENTRY": 1,
     "EXIT": 3,
@@ -45356,14 +45146,10 @@
     "Max": 1,
     "SushiFish": 0
   },
-  "app.Em1157_00_Def.MULTI_PARTS": {},
   "app.Em1157_00_Def.PARTS": {
     "BODY": 0,
     "HEAD": 1
   },
-  "app.Em1157_00_Def.PARTS_BREAK": {},
-  "app.Em1157_00_Def.SCAR_POINT": {},
-  "app.Em1157_00_Def.WEAK_POINT": {},
   "app.Em1158_00Action.cToPinch.STATE": {
     "LOOP1": 1,
     "LOOP2": 2,
@@ -45378,9 +45164,6 @@
     "HEAD": 0,
     "HEAD_CLOSE": 1
   },
-  "app.Em1158_00_Def.PARTS_BREAK": {},
-  "app.Em1158_00_Def.SCAR_POINT": {},
-  "app.Em1158_00_Def.WEAK_POINT": {},
   "app.Em1159Def.ACT_ATTR": {
     "CAUTION": 0
   },
@@ -45409,34 +45192,22 @@
     "FULL": 0,
     "MAX": 1
   },
-  "app.Em1159_00_Def.MULTI_PARTS": {},
   "app.Em1159_00_Def.PARTS": {
     "Body": 1,
     "Head": 0
   },
-  "app.Em1159_00_Def.PARTS_BREAK": {},
-  "app.Em1159_00_Def.SCAR_POINT": {},
-  "app.Em1159_00_Def.WEAK_POINT": {},
   "app.Em1160_00CarryManager.CarryType": {
     "Max": 1,
     "OilCrab": 0
   },
-  "app.Em1160_00_Def.MULTI_PARTS": {},
   "app.Em1160_00_Def.PARTS": {
     "Body": 1,
     "Head": 0
   },
-  "app.Em1160_00_Def.PARTS_BREAK": {},
-  "app.Em1160_00_Def.SCAR_POINT": {},
-  "app.Em1160_00_Def.WEAK_POINT": {},
-  "app.Em1161_00_Def.MULTI_PARTS": {},
   "app.Em1161_00_Def.PARTS": {
     "Body": 1,
     "Head": 0
   },
-  "app.Em1161_00_Def.PARTS_BREAK": {},
-  "app.Em1161_00_Def.SCAR_POINT": {},
-  "app.Em1161_00_Def.WEAK_POINT": {},
   "app.Em1162Def.DETECTOR_TYPE": {
     "EXIT": 0
   },
@@ -45459,9 +45230,6 @@
     "BODY": 1,
     "HEAD": 0
   },
-  "app.Em1162_00_Def.PARTS_BREAK": {},
-  "app.Em1162_00_Def.SCAR_POINT": {},
-  "app.Em1162_00_Def.WEAK_POINT": {},
   "app.Em1163Def.OPTION_TAG": {
     "CALLED_MEMBER": 2,
     "ENTRY_CEILING": 1,
@@ -45492,13 +45260,9 @@
     "FAR": 1,
     "NEAR": 0
   },
-  "app.Em1163_00_Def.MULTI_PARTS": {},
   "app.Em1163_00_Def.PARTS": {
     "Body": 0
   },
-  "app.Em1163_00_Def.PARTS_BREAK": {},
-  "app.Em1163_00_Def.SCAR_POINT": {},
-  "app.Em1163_00_Def.WEAK_POINT": {},
   "app.Em1164Def.OPTION_TAG": {
     "CALL_MATE": 0
   },
@@ -45508,14 +45272,10 @@
   "app.Em1164Def.OPTION_TAG_Fixed": {
     "CALL_MATE": 4247369076
   },
-  "app.Em1164_50_Def.MULTI_PARTS": {},
   "app.Em1164_50_Def.PARTS": {
     "BODY": 1,
     "HEAD": 0
   },
-  "app.Em1164_50_Def.PARTS_BREAK": {},
-  "app.Em1164_50_Def.SCAR_POINT": {},
-  "app.Em1164_50_Def.WEAK_POINT": {},
   "app.Em1165Def.OPTION_TAG": {
     "CREATE_BARRIER": 1,
     "EX_APPEAR": 2,
@@ -45535,12 +45295,9 @@
     "Burst_SelfDestruction": 0,
     "Burst_SelfDestructionInBarrier": 1
   },
-  "app.Em1165_00_Def.MULTI_PARTS": {},
   "app.Em1165_00_Def.PARTS": {
     "Body": 0
   },
-  "app.Em1165_00_Def.PARTS_BREAK": {},
-  "app.Em1165_00_Def.SCAR_POINT": {},
   "app.Em1165_00_Def.SEND_PACKET_TYPE": {
     "CHAT_LOG": 2,
     "SERVANT_EXIT": 1,
@@ -45557,16 +45314,9 @@
     "HIDDEN_WAIT": 0,
     "NORMAL": 6
   },
-  "app.Em1165_00_Def.WEAK_POINT": {},
-  "app.Em5001Def.MULTI_PARTS": {},
-  "app.Em5001Def.PARTS": {},
-  "app.Em5001Def.PARTS_BREAK": {},
-  "app.Em5001Def.SCAR_POINT": {},
-  "app.Em5001Def.WEAK_POINT": {},
   "app.Em5001_20Shell.FixedID": {
     "Explosion": 0
   },
-  "app.Em5002Def.MULTI_PARTS": {},
   "app.Em5002Def.OPTION_TAG": {
     "WAIT_ONLY": 0
   },
@@ -45579,9 +45329,6 @@
   "app.Em5002Def.PARTS": {
     "BODY": 0
   },
-  "app.Em5002Def.PARTS_BREAK": {},
-  "app.Em5002Def.SCAR_POINT": {},
-  "app.Em5002Def.WEAK_POINT": {},
   "app.Em5002_10Shell.FixedID": {
     "CleanBadConditions": 0
   },
@@ -45590,27 +45337,15 @@
     "LOOP": 1,
     "START": 0
   },
-  "app.Em5005Def.MULTI_PARTS": {},
   "app.Em5005Def.PARTS": {
     "BODY": 0
   },
-  "app.Em5005Def.PARTS_BREAK": {},
-  "app.Em5005Def.SCAR_POINT": {},
-  "app.Em5005Def.WEAK_POINT": {},
-  "app.Em5005_10_Def.MULTI_PARTS": {},
   "app.Em5005_10_Def.PARTS": {
     "BODY": 0
   },
-  "app.Em5005_10_Def.PARTS_BREAK": {},
-  "app.Em5005_10_Def.SCAR_POINT": {},
-  "app.Em5005_10_Def.WEAK_POINT": {},
-  "app.Em5005_20_Def.MULTI_PARTS": {},
   "app.Em5005_20_Def.PARTS": {
     "BODY": 0
   },
-  "app.Em5005_20_Def.PARTS_BREAK": {},
-  "app.Em5005_20_Def.SCAR_POINT": {},
-  "app.Em5005_20_Def.WEAK_POINT": {},
   "app.Em5006Def.OPTION_TAG": {
     "WITH_WOOD": 0
   },
@@ -45620,7 +45355,6 @@
   "app.Em5006Def.OPTION_TAG_Fixed": {
     "WITH_WOOD": 0
   },
-  "app.Em5007Def.MULTI_PARTS": {},
   "app.Em5007Def.OPTION_TAG": {
     "BEE_NEST": 0
   },
@@ -45633,29 +45367,17 @@
   "app.Em5007Def.PARTS": {
     "BODY": 0
   },
-  "app.Em5007Def.PARTS_BREAK": {},
-  "app.Em5007Def.SCAR_POINT": {},
-  "app.Em5007Def.WEAK_POINT": {},
-  "app.Em5007_00_Def.MULTI_PARTS": {},
   "app.Em5007_00_Def.PARTS": {
     "BODY": 0
   },
-  "app.Em5007_00_Def.PARTS_BREAK": {},
-  "app.Em5007_00_Def.SCAR_POINT": {},
-  "app.Em5007_00_Def.WEAK_POINT": {},
-  "app.Em5008Def.MULTI_PARTS": {},
   "app.Em5008Def.PARTS": {
     "BODY": 0
   },
-  "app.Em5008Def.PARTS_BREAK": {},
-  "app.Em5008Def.SCAR_POINT": {},
-  "app.Em5008Def.WEAK_POINT": {},
   "app.Em5008_00Action.cDamage.STATE": {
     "APPEAR": 2,
     "DAMAGE": 1,
     "NONE": 0
   },
-  "app.Em5009Def.MULTI_PARTS": {},
   "app.Em5009Def.OPTION_TAG": {
     "HOVERING": 0,
     "HOVERING_IMMEDIATE_REPOP": 1
@@ -45668,10 +45390,6 @@
     "HOVERING": 2196931968,
     "HOVERING_IMMEDIATE_REPOP": 1994349824
   },
-  "app.Em5009Def.PARTS": {},
-  "app.Em5009Def.PARTS_BREAK": {},
-  "app.Em5009Def.SCAR_POINT": {},
-  "app.Em5009Def.WEAK_POINT": {},
   "app.Em5010Def.OPTION_TAG": {
     "SPECIAL": 0,
     "SPECIAL_CHALLENGING": 1
@@ -45712,22 +45430,13 @@
     "NONE": 0,
     "WAIT": 1
   },
-  "app.Em5101Def.MULTI_PARTS": {},
-  "app.Em5101Def.PARTS": {},
-  "app.Em5101Def.PARTS_BREAK": {},
-  "app.Em5101Def.SCAR_POINT": {},
-  "app.Em5101Def.WEAK_POINT": {},
   "app.Em5102Action.cEscape.STATE": {
     "ESCAPE": 0,
     "FINISH": 1
   },
-  "app.Em5102_00_Def.MULTI_PARTS": {},
   "app.Em5102_00_Def.PARTS": {
     "BODY": 0
   },
-  "app.Em5102_00_Def.PARTS_BREAK": {},
-  "app.Em5102_00_Def.SCAR_POINT": {},
-  "app.Em5102_00_Def.WEAK_POINT": {},
   "app.Em5200_00Def.OPTION_TAG": {
     "ESCAPE_DIRECTLY": 0,
     "ESCAPE_ONLY": 1,
@@ -45766,7 +45475,6 @@
     "LOOP": 1,
     "START": 0
   },
-  "app.Em5202Def.MULTI_PARTS": {},
   "app.Em5202Def.OPTION_TAG": {
     "SET_WALL_CEILING": 0
   },
@@ -45776,10 +45484,6 @@
   "app.Em5202Def.OPTION_TAG_Fixed": {
     "SET_WALL_CEILING": 0
   },
-  "app.Em5202Def.PARTS": {},
-  "app.Em5202Def.PARTS_BREAK": {},
-  "app.Em5202Def.SCAR_POINT": {},
-  "app.Em5202Def.WEAK_POINT": {},
   "app.Em5203Action.cFeed.STATE": {
     "END": 1,
     "START": 0
@@ -45806,7 +45510,6 @@
     "RISE": 1,
     "START": 0
   },
-  "app.Em5203Def.MULTI_PARTS": {},
   "app.Em5203Def.OPTION_TAG": {
     "CHORUS_ONLY": 3,
     "GROWN_CHILD_1": 4,
@@ -45837,17 +45540,12 @@
     "SHELTER_ONLY": 2,
     "WAIT_ONLY": 1
   },
-  "app.Em5203Def.PARTS": {},
-  "app.Em5203Def.PARTS_BREAK": {},
-  "app.Em5203Def.SCAR_POINT": {},
-  "app.Em5203Def.WEAK_POINT": {},
   "app.Em5204Action.cSleep.STATE": {
     "END": 3,
     "LOOP": 2,
     "NONE": 0,
     "START": 1
   },
-  "app.Em5204Def.MULTI_PARTS": {},
   "app.Em5204Def.OPTION_TAG": {
     "WAIT_ONLY": 0
   },
@@ -45857,36 +45555,12 @@
   "app.Em5204Def.OPTION_TAG_Fixed": {
     "WAIT_ONLY": 0
   },
-  "app.Em5204Def.PARTS": {},
-  "app.Em5204Def.PARTS_BREAK": {},
-  "app.Em5204Def.SCAR_POINT": {},
-  "app.Em5204Def.WEAK_POINT": {},
-  "app.Em5205Def.MULTI_PARTS": {},
-  "app.Em5205Def.PARTS": {},
-  "app.Em5205Def.PARTS_BREAK": {},
-  "app.Em5205Def.SCAR_POINT": {},
-  "app.Em5205Def.WEAK_POINT": {},
-  "app.Em5206Def.MULTI_PARTS": {},
-  "app.Em5206Def.PARTS": {},
-  "app.Em5206Def.PARTS_BREAK": {},
-  "app.Em5206Def.SCAR_POINT": {},
-  "app.Em5206Def.WEAK_POINT": {},
   "app.Em5206_00Action.cTailStand_PairCommunication_B_from_Start.STATE": {
     "END": 3,
     "PREPARE": 1,
     "START": 2,
     "WAIT": 0
   },
-  "app.Em5207Def.MULTI_PARTS": {},
-  "app.Em5207Def.PARTS": {},
-  "app.Em5207Def.PARTS_BREAK": {},
-  "app.Em5207Def.SCAR_POINT": {},
-  "app.Em5207Def.WEAK_POINT": {},
-  "app.Em5208Def.MULTI_PARTS": {},
-  "app.Em5208Def.PARTS": {},
-  "app.Em5208Def.PARTS_BREAK": {},
-  "app.Em5208Def.SCAR_POINT": {},
-  "app.Em5208Def.WEAK_POINT": {},
   "app.Em5209_00Action.cWait.DANGER_PHASE": {
     "LOOP": 2,
     "NONE": 0,
@@ -46096,7 +45770,6 @@
     "FIXED_MEMBER": 2035154432,
     "LOBBY_MEMBER": 19295
   },
-  "app.Em5300Def.MULTI_PARTS": {},
   "app.Em5300Def.OPTION_TAG": {
     "DEEP": 3,
     "LARGE": 0,
@@ -46115,15 +45788,6 @@
     "MEDIUM": 4088161296,
     "SMALL": 1387159808
   },
-  "app.Em5300Def.PARTS": {},
-  "app.Em5300Def.PARTS_BREAK": {},
-  "app.Em5300Def.SCAR_POINT": {},
-  "app.Em5300Def.WEAK_POINT": {},
-  "app.Em5301Def.MULTI_PARTS": {},
-  "app.Em5301Def.PARTS": {},
-  "app.Em5301Def.PARTS_BREAK": {},
-  "app.Em5301Def.SCAR_POINT": {},
-  "app.Em5301Def.WEAK_POINT": {},
   "app.EmBTableActionConditionType.TYPE": {
     "ANGRY": 2,
     "NORMAL": 0,
@@ -46470,12 +46134,6 @@
     "START": 1,
     "UPDATE_BEGIN": 2
   },
-  "app.EmMotionTrackController.cIkLegSpineForcePushUpBase`1.EXIT_STATE<!0>": {
-    "MAX": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "NONE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "START": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "UPDATE_BEGIN": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
-  },
   "app.EmMotionTrackController.cIkLegSpineForcePushUpBase`1.EXIT_STATE<app.motion_track.EmMotionTrack.IkLegSpineForcePushUpHead>": {
     "MAX": 3,
     "NONE": 0,
@@ -46487,12 +46145,6 @@
     "NONE": 0,
     "START": 1,
     "UPDATE_BEGIN": 2
-  },
-  "app.EmMotionTrackController.cIkLegSpineForcePushUpBase`1.EXIT_STATE[[T, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": {
-    "MAX": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "NONE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "START": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "UPDATE_BEGIN": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
   },
   "app.EmPropDef.HIDDEN_CAUSE": {
     "INVALID": 4294967295,
@@ -46530,10 +46182,6 @@
     "SEA_WYVERN": 1367067136,
     "TWO_LEG": 1438267392,
     "WING_WYVERN": 311144736
-  },
-  "app.EnemyCarryManagerBase`1.PosOffsetBaseType<!0>": {
-    "EmRotation": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "JointRotation": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
   },
   "app.EnemyCarryManagerBase`1.PosOffsetBaseType<app.Em0008_00CarryManager.CARRY_TYPE>": {
     "EmRotation": 0,
@@ -46578,10 +46226,6 @@
   "app.EnemyCarryManagerBase`1.PosOffsetBaseType<app.cEm0165_00Extend.CATCH_ITEM_TYPE>": {
     "EmRotation": 0,
     "JointRotation": 1
-  },
-  "app.EnemyCarryManagerBase`1.PosOffsetBaseType[[T, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": {
-    "EmRotation": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "JointRotation": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
   },
   "app.EnemyCommonSceneActivator.PHASE": {
     "ACTIVATE": 4,
@@ -70665,7 +70309,6 @@
     "MARKED_VEC_0": 1,
     "MARKED_VEC_1": 2
   },
-  "app.HunterDef.NET_SYNC_SUB_ACTION_ARG": {},
   "app.HunterDef.NEXT_MARKED_VALUE_TYPE": {
     "AFTER_CAMP_REST": 19,
     "AFTER_SIMPLE_CAMP_REST": 20,
@@ -111128,25 +110771,10 @@
     "TERRAIN_PORTER": 8,
     "ZONE_GET_PLAYER": 27
   },
-  "app.RELogId.ActionLog": {},
-  "app.RELogId.AnimalBaseCamp": {},
-  "app.RELogId.AnimalCapture": {},
-  "app.RELogId.AnimalEx": {},
   "app.RELogId.AnimalFishing": {
     "ERROR": 1,
     "INFO": 2
   },
-  "app.RELogId.AnimalLotteryTable": {},
-  "app.RELogId.AnimalOther": {},
-  "app.RELogId.AnimalPool": {},
-  "app.RELogId.AnimalPopArea": {},
-  "app.RELogId.AnimalPopLink": {},
-  "app.RELogId.AnimalPreview": {},
-  "app.RELogId.AnimalResource": {},
-  "app.RELogId.AnimalSave": {},
-  "app.RELogId.AnimalTest": {},
-  "app.RELogId.AnimalTool": {},
-  "app.RELogId.AreaMove": {},
   "app.RELogId.AutoPlay": {
     "AutoPlay0283": 283,
     "AutoPlay0284": 284,
@@ -111262,15 +110890,10 @@
     "Util0007": 7,
     "Util0008": 8
   },
-  "app.RELogId.Camera": {},
-  "app.RELogId.Camera_PlayerCamera_Action": {},
-  "app.RELogId.Chara": {},
   "app.RELogId.CharaMake": {
     "ID256": 256,
     "ID257": 257
   },
-  "app.RELogId.CogJoint": {},
-  "app.RELogId.CombatEmData": {},
   "app.RELogId.ContextSave": {
     "Debug": 1,
     "Error": 3,
@@ -111278,15 +110901,6 @@
     "Info": 2,
     "Warm": 4
   },
-  "app.RELogId.Create": {},
-  "app.RELogId.Dialogue": {},
-  "app.RELogId.DialogueChain": {},
-  "app.RELogId.DialogueLottery1": {},
-  "app.RELogId.DialogueLottery2": {},
-  "app.RELogId.DialogueMinieEvent": {},
-  "app.RELogId.DialogueNone": {},
-  "app.RELogId.DialogueSound": {},
-  "app.RELogId.Dump": {},
   "app.RELogId.EX": {
     "Debug": 1,
     "Error": 3,
@@ -111309,10 +110923,6 @@
     "ID4": 4,
     "ID5": 5
   },
-  "app.RELogId.EmPropSystem": {},
-  "app.RELogId.EmPropUnique": {},
-  "app.RELogId.Enemy": {},
-  "app.RELogId.Entrance": {},
   "app.RELogId.Environment": {
     "ERROR": 271,
     "ID256": 256,
@@ -111345,16 +110955,11 @@
     "EndMotionDiscarded": 2,
     "EndMotionSet": 1
   },
-  "app.RELogId.Facility": {},
   "app.RELogId.Fade": {
     "ID256": 256,
     "ID257": 257,
     "ID258": 258
   },
-  "app.RELogId.Field": {},
-  "app.RELogId.Field_Stage_Environment_Register": {},
-  "app.RELogId.Field_Util_StageID": {},
-  "app.RELogId.Force": {},
   "app.RELogId.GUI": {
     "GUI0259": 259,
     "GUI0260": 260,
@@ -111559,15 +111164,12 @@
     "ID259": 259,
     "ID260": 260
   },
-  "app.RELogId.GameFlow": {},
-  "app.RELogId.Gimmick": {},
   "app.RELogId.Graphics": {
     "INFO": 1
   },
   "app.RELogId.Graphics_RayTracing": {
     "CHANGE_EXPTL_RAY_TRACE": 1
   },
-  "app.RELogId.Grapple": {},
   "app.RELogId.Ground": {
     "GROUND_DISABLE_REFPOS": 6,
     "GROUND_ENABLE_REFPOS": 5,
@@ -111576,8 +111178,6 @@
     "ID3": 3,
     "ID4": 4
   },
-  "app.RELogId.Group": {},
-  "app.RELogId.GuideInsect": {},
   "app.RELogId.GuideInsectDebug": {
     "Debug": 1,
     "Error": 3,
@@ -111598,7 +111198,6 @@
     "Error": 3,
     "Warn": 2
   },
-  "app.RELogId.Manager": {},
   "app.RELogId.MeshIntersection": {
     "ID1": 1,
     "ID2": 2,
@@ -111786,128 +111385,14 @@
     "Mission0388": 388,
     "Mission0389": 389
   },
-  "app.RELogId.Motion": {},
   "app.RELogId.Motion_Chain": {
     "ID256": 256
   },
-  "app.RELogId.Motion_Misc": {},
   "app.RELogId.Motion_Misc_Tamagusari": {
     "ConstraintGeneric": 3,
     "LinkGeneric": 2,
     "RootGeneric": 1
   },
-  "app.RELogId.NPC": {},
-  "app.RELogId.NPC_Chara_AIMove": {},
-  "app.RELogId.NPC_Chara_AIState": {},
-  "app.RELogId.NPC_Chara_AITable": {},
-  "app.RELogId.NPC_Chara_Accessory": {},
-  "app.RELogId.NPC_Chara_Casting": {},
-  "app.RELogId.NPC_Chara_Context": {},
-  "app.RELogId.NPC_Chara_Desire": {},
-  "app.RELogId.NPC_Chara_Dialogue": {},
-  "app.RELogId.NPC_Chara_Fsm": {},
-  "app.RELogId.NPC_Chara_FsmSub": {},
-  "app.RELogId.NPC_Chara_GameMessage": {},
-  "app.RELogId.NPC_Chara_GameMessageReceive": {},
-  "app.RELogId.NPC_Chara_GameObject": {},
-  "app.RELogId.NPC_Chara_Gesture": {},
-  "app.RELogId.NPC_Chara_GoaTree": {},
-  "app.RELogId.NPC_Chara_GoalAction": {},
-  "app.RELogId.NPC_Chara_GoalMove": {},
-  "app.RELogId.NPC_Chara_HunterAction": {},
-  "app.RELogId.NPC_Chara_HunterActionSub": {},
-  "app.RELogId.NPC_Chara_Instantiate": {},
-  "app.RELogId.NPC_Chara_LikeAction": {},
-  "app.RELogId.NPC_Chara_LikeActionSub": {},
-  "app.RELogId.NPC_Chara_LinearAct": {},
-  "app.RELogId.NPC_Chara_Motion": {},
-  "app.RELogId.NPC_Chara_MotionPack": {},
-  "app.RELogId.NPC_Chara_MotionPackDecorate": {},
-  "app.RELogId.NPC_Chara_MotionPackSub": {},
-  "app.RELogId.NPC_Chara_Navigation": {},
-  "app.RELogId.NPC_Chara_Partner": {},
-  "app.RELogId.NPC_Chara_PlayerCommand": {},
-  "app.RELogId.NPC_Chara_Porter": {},
-  "app.RELogId.NPC_Chara_PorterSpeed": {},
-  "app.RELogId.NPC_Chara_Ray": {},
-  "app.RELogId.NPC_Chara_Status": {},
-  "app.RELogId.NPC_Chara_StreakAction": {},
-  "app.RELogId.NPC_Chara_Street": {},
-  "app.RELogId.NPC_Chara_Task": {},
-  "app.RELogId.NPC_Combi_Fsm": {},
-  "app.RELogId.NPC_Combi_MiniComponent": {},
-  "app.RELogId.NPC_Combi_Net": {},
-  "app.RELogId.NPC_Combi_State": {},
-  "app.RELogId.NPC_Gimmick_Command": {},
-  "app.RELogId.NPC_Gimmick_GameObject": {},
-  "app.RELogId.NPC_Group_Event": {},
-  "app.RELogId.NPC_Group_Fsm": {},
-  "app.RELogId.NPC_Group_GameMessage": {},
-  "app.RELogId.NPC_Group_GameObject": {},
-  "app.RELogId.NPC_Group_Instantiate": {},
-  "app.RELogId.NPC_Group_System": {},
-  "app.RELogId.NPC_Group_Zone": {},
-  "app.RELogId.NPC_Jack_AIMove": {},
-  "app.RELogId.NPC_Jack_AIState": {},
-  "app.RELogId.NPC_Jack_AITable": {},
-  "app.RELogId.NPC_Jack_Accessory": {},
-  "app.RELogId.NPC_Jack_Casting": {},
-  "app.RELogId.NPC_Jack_Context": {},
-  "app.RELogId.NPC_Jack_Desire": {},
-  "app.RELogId.NPC_Jack_Dialogue": {},
-  "app.RELogId.NPC_Jack_Fsm": {},
-  "app.RELogId.NPC_Jack_FsmSub": {},
-  "app.RELogId.NPC_Jack_GameMessage": {},
-  "app.RELogId.NPC_Jack_GameMessageReceive": {},
-  "app.RELogId.NPC_Jack_GameObject": {},
-  "app.RELogId.NPC_Jack_Gesture": {},
-  "app.RELogId.NPC_Jack_GoaTree": {},
-  "app.RELogId.NPC_Jack_GoalAction": {},
-  "app.RELogId.NPC_Jack_GoalMove": {},
-  "app.RELogId.NPC_Jack_HunterAction": {},
-  "app.RELogId.NPC_Jack_HunterActionSub": {},
-  "app.RELogId.NPC_Jack_Instantiate": {},
-  "app.RELogId.NPC_Jack_LikeAction": {},
-  "app.RELogId.NPC_Jack_LikeActionSub": {},
-  "app.RELogId.NPC_Jack_LinearAct": {},
-  "app.RELogId.NPC_Jack_Motion": {},
-  "app.RELogId.NPC_Jack_MotionPack": {},
-  "app.RELogId.NPC_Jack_MotionPackDecorate": {},
-  "app.RELogId.NPC_Jack_MotionPackSub": {},
-  "app.RELogId.NPC_Jack_Navigation": {},
-  "app.RELogId.NPC_Jack_Partner": {},
-  "app.RELogId.NPC_Jack_PlayerCommand": {},
-  "app.RELogId.NPC_Jack_Porter": {},
-  "app.RELogId.NPC_Jack_PorterSpeed": {},
-  "app.RELogId.NPC_Jack_Ray": {},
-  "app.RELogId.NPC_Jack_Status": {},
-  "app.RELogId.NPC_Jack_StreakAction": {},
-  "app.RELogId.NPC_Jack_Street": {},
-  "app.RELogId.NPC_Jack_Task": {},
-  "app.RELogId.NPC_System_BCManage": {},
-  "app.RELogId.NPC_System_Combination": {},
-  "app.RELogId.NPC_System_CreateZone": {},
-  "app.RELogId.NPC_System_Egg": {},
-  "app.RELogId.NPC_System_Gimmick": {},
-  "app.RELogId.NPC_System_Jack": {},
-  "app.RELogId.NPC_System_Layout": {},
-  "app.RELogId.NPC_System_Manager": {},
-  "app.RELogId.NPC_System_NetReceive": {},
-  "app.RELogId.NPC_System_NetSend": {},
-  "app.RELogId.NPC_System_NetSystem": {},
-  "app.RELogId.NPC_System_PQS": {},
-  "app.RELogId.NPC_System_Recital": {},
-  "app.RELogId.NPC_System_Talk": {},
-  "app.RELogId.NPC_Unit_Event": {},
-  "app.RELogId.NPC_Unit_Fsm": {},
-  "app.RELogId.NPC_Unit_GameMessage": {},
-  "app.RELogId.NPC_Unit_GameObject": {},
-  "app.RELogId.NPC_Unit_Instantiate": {},
-  "app.RELogId.NPC_Unit_System": {},
-  "app.RELogId.NPC_Unit_Zone": {},
-  "app.RELogId.Navigation": {},
-  "app.RELogId.Net": {},
-  "app.RELogId.Network": {},
   "app.RELogId.NetworkCommon": {
     "COMMON_STR_DEBUG": 2,
     "COMMON_STR_ERROR": 4,
@@ -111919,34 +111404,11 @@
     "SESSION_LEAVE": 9,
     "SESSION_MEMBER_LEAVE": 8
   },
-  "app.RELogId.Other": {},
-  "app.RELogId.Otomo": {},
-  "app.RELogId.Otomo_CampOption": {},
-  "app.RELogId.Otomo_Emote": {},
-  "app.RELogId.Otomo_Fishing": {},
-  "app.RELogId.Otomo_GoaTree": {},
-  "app.RELogId.Otomo_Grill": {},
-  "app.RELogId.Otomo_Motion": {},
-  "app.RELogId.Otomo_Move": {},
-  "app.RELogId.Otomo_Navigation": {},
-  "app.RELogId.Otomo_Network": {},
-  "app.RELogId.Otomo_PacketLog_Action": {},
-  "app.RELogId.Otomo_PacketLog_Interval": {},
-  "app.RELogId.Otomo_PacketLog_Join": {},
-  "app.RELogId.Otomo_PacketLog_Shell": {},
-  "app.RELogId.Otomo_PacketLog_ShellInterval": {},
-  "app.RELogId.Otomo_QuestClear": {},
-  "app.RELogId.Otomo_System": {},
-  "app.RELogId.Otomo_Warp": {},
   "app.RELogId.Player": {
     "ERROR": 258,
     "TRACE": 256,
     "WARNING": 257
   },
-  "app.RELogId.Player_NpcJack": {},
-  "app.RELogId.Player_SlingerRope": {},
-  "app.RELogId.PointGraph": {},
-  "app.RELogId.Porter": {},
   "app.RELogId.PorterAIState": {
     "Debug": 259,
     "Error": 258,
@@ -112184,24 +111646,13 @@
     "Info": 256,
     "Warn": 257
   },
-  "app.RELogId.Predator": {},
-  "app.RELogId.Repop": {},
   "app.RELogId.RequestSet": {
     "ERROR": 1
   },
-  "app.RELogId.Research": {},
   "app.RELogId.Save": {
     "ID256": 256,
     "ID257": 257
   },
-  "app.RELogId.SaveData": {},
-  "app.RELogId.Scar": {},
-  "app.RELogId.Server": {},
-  "app.RELogId.Sound": {},
-  "app.RELogId.SoundMusic": {},
-  "app.RELogId.SoundNPC": {},
-  "app.RELogId.SoundSpatialAudio": {},
-  "app.RELogId.SoundVibration": {},
   "app.RELogId.System": {
     "ID256": 256,
     "ID257": 257,
@@ -112265,7 +111716,6 @@
   "app.RELogId.Widget": {
     "ID1": 1
   },
-  "app.RELogId.Zone": {},
   "app.RELogId.ZoneSys": {
     "ID1": 1
   },
@@ -113450,26 +112900,12 @@
     "State": 2,
     "Trigger": 1
   },
-  "app.SoundCatalogManager`1.SoundCatalogHandler.STATUS<!0>": {
-    "COMPLETED": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "INSTANTIATE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "MAX": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "STANDBY": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "WAIT_ACTIVATE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
-  },
   "app.SoundCatalogManager`1.SoundCatalogHandler.STATUS<app.snd_user_data.CatalogCategory>": {
     "COMPLETED": 3,
     "INSTANTIATE": 1,
     "MAX": 4,
     "STANDBY": 0,
     "WAIT_ACTIVATE": 2
-  },
-  "app.SoundCatalogManager`1.SoundCatalogHandler.STATUS[[CATALOG_CATEGORY, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": {
-    "COMPLETED": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "INSTANTIATE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "MAX": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "STANDBY": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "WAIT_ACTIVATE": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
   },
   "app.SoundCharaMakePreviewHelper.Chara": {
     "MAX": 2,
@@ -128518,16 +127954,6 @@
     "WAIT_LOAD": 2,
     "WAIT_PREFAB_STANDBY": 1
   },
-  "app.cContextInstanceController`1.STATE<!!0>": {
-    "DESTROYED": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "INIT": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "INSTANTIATED": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
-  },
-  "app.cContextInstanceController`1.STATE<!0>": {
-    "DESTROYED": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "INIT": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "INSTANTIATED": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
-  },
   "app.cContextInstanceController`1.STATE<app.cEnemyContextHolder>": {
     "DESTROYED": 2,
     "INIT": 0,
@@ -128557,11 +127983,6 @@
     "DESTROYED": 2,
     "INIT": 0,
     "INSTANTIATED": 1
-  },
-  "app.cContextInstanceController`1.STATE[[T, application, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": {
-    "DESTROYED": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "INIT": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE",
-    "INSTANTIATED": "REFRAMEWORK_UNIMPLEMENTED_INIT_TYPE"
   },
   "app.cDTCameraTransitionElement.TransitionPattern": {
     "FADE_LASTCUT": 3,
@@ -137989,7 +137410,6 @@
     "STOMACH": 4,
     "WP_HAND": 10
   },
-  "app.motion_track.AppPadVibrationTrack.TARGET": {},
   "app.motion_track.Em0070_00MotionTrack.StandStateChenge.CHANGE_STAND_STATE": {
     "DOUBLE_FLOOR": 1,
     "FLY": 0
@@ -139338,8 +138758,6 @@
     "SOLVED": 1,
     "SOLVING": 0
   },
-  "app.st405_a01_Boundary_HighCost_1.ATTR": {},
-  "app.st405_a01_Boundary_HighCost_1.ATTR_BIT": {},
   "app.user_data.AppVoxelData.NAVI_ATTR": {
     "HIGH_WALL": 8,
     "LOW_WALL": 4,
@@ -153925,7 +153343,6 @@
     "STOP": 0,
     "UPDATE": 2
   },
-  "via.relib.log.LogId": {},
   "via.relib.motion.UpdateOrder": {
     "BaseOrder": 4294966496,
     "MotionHistoryRecorder": 4294966497

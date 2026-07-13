@@ -126,6 +126,12 @@ def _find_by_any(entries: object, field_name: str, values: set[object]) -> JsonD
 
 def _expect(target: JsonDict, name: str, expected: object, messages: list[str]) -> None:
     actual = target.get(name)
+    # PyREUser3 0.6.0 exposes enum scalars in repack JSON as labels such as
+    # "[3] StreamingTextureResolution_1024". Older releases returned the raw
+    # integer. Treat both representations as the same value while leaving bool,
+    # float, and ordinary string comparisons strict.
+    if type(expected) is int and enum_int(actual) == expected:
+        return
     if actual != expected:
         messages.append(f"{name}: expected {expected!r}, got {actual!r}")
 
