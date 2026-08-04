@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from . import (
-    APP_STREAMING_PROTECT_LISTS,
     APP_STREAMING_PROTECT_TARGETS,
     APP_STREAMING_PLATFORM_DATA_LIST,
     APP_STREAMING_PLATFORM_FIELD,
@@ -18,8 +17,6 @@ from . import (
     GRAPHICS_RAY_TRACING_MANAGER_FIELD,
     GRAPHICS_RAY_TRACING_FIELD,
     GRAPHICS_ROOT_CLASS,
-    GRAPHICS_STREAMING_MESH_LIMIT_LIST,
-    GRAPHICS_STREAMING_MESH_LIMIT_TARGETS,
     GRAPHICS_STREAMING_TEXTURE_LIMIT_LIST,
     GRAPHICS_STREAMING_TEXTURE_LIMIT_MATCH_FIELD,
     GRAPHICS_STREAMING_TEXTURE_LIMIT_TARGETS,
@@ -82,8 +79,6 @@ def verify_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
             messages,
         )
 
-    for entry in iter_ref_fields(data, root_fields[GRAPHICS_STREAMING_MESH_LIMIT_LIST]):
-        _expect_field_targets(entry, GRAPHICS_STREAMING_MESH_LIMIT_TARGETS, enums, messages)
     return messages
 
 
@@ -99,9 +94,9 @@ def verify_app_streaming(data: JsonDict, enums: EnumLookup) -> list[str]:
             not in APP_STREAMING_SELECTED_PLATFORMS
         ):
             continue
-        for list_name in APP_STREAMING_PROTECT_LISTS:
+        for list_name, targets in APP_STREAMING_PROTECT_TARGETS.items():
             entries = list(iter_ref_fields(data, platform_fields[list_name]))
-            for entry, values in zip(entries, APP_STREAMING_PROTECT_TARGETS):
+            for entry, values in zip(entries, targets):
                 _expect_field_targets(entry, values, enums, messages)
     return messages
 

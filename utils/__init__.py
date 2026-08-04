@@ -52,6 +52,7 @@ GRAPHICS_STREAMING_TEXTURE_SETTING_TARGETS: FieldTargets = {
         "via.render.RenderConfig.MaximumStreamingTextureResolution",
         "MaximumStreamingTextureResolution_8192",
     ),
+    "_ClosestStreamingTextureDistance": 20.0,
 }
 
 GRAPHICS_STREAMING_TEXTURE_LIMIT_LIST = "_StreamingTextureLimitList"
@@ -78,6 +79,20 @@ GRAPHICS_PC_PRESET_TARGETS: FieldTargets = {
     "_MeshQuality": 0,
     "_SamplerQuality": enum_target("via.render.SamplerQuality", "Anisotropic16"),
     "_SecondarySamplerQuality": enum_target("via.render.SamplerQuality", "Anisotropic8"),
+    "_LODResolustion": enum_target(
+        "via.render.MPMRLodResolution",
+        "MPMRLodResolution_2160p",
+    ),
+    "_SmallObjectCullingResolution": enum_target(
+        "via.render.MPMRSmallObjectCullingResolution",
+        "MPMRSmallObjectCullingResolution_2160p",
+    ),
+    "_MeshletSmallObjectCulling": 16.0,
+    "_StreamingMeshMinimumLOD": 0,
+    "_StreamingMeshletMinimumLOD": 0,
+    "_MeshStreamingSize": 4096,
+    "_TextureLoadLevelBias": 0,
+    "_StreamingTextureLoadLevelBias": 0,
     "_GIPointCloudQuality": 0,
     "_MainRaymarchResolution": enum_target("via.render.Cloudscape2.Resolution", "Full"),
     "_IBLRaymarchResolution": enum_target("via.render.Cloudscape2.IBLResolution", "Full"),
@@ -98,13 +113,6 @@ GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_TARGETS: FieldTargets = {
     "_UseRayTracingAO": True,
 }
 
-GRAPHICS_STREAMING_MESH_LIMIT_LIST = "_StreamingMeshLimitList"
-GRAPHICS_STREAMING_MESH_LIMIT_TARGETS: FieldTargets = {
-    "_StreamingMeshMinimumLodLimit": 0,
-    "_StreamingMeshletMinimumLodLimit": 0,
-    "_MeshQuality": 0,
-}
-
 APP_STREAMING_ROOT_CLASS = "AppStreamingControllerManagerSetting"
 APP_STREAMING_PLATFORM_DATA_LIST = "_PlatformData"
 APP_STREAMING_PLATFORM_FIELD = "_Platform"
@@ -113,20 +121,29 @@ APP_STREAMING_SELECTED_PLATFORMS = {
     1: "PC",
 }
 
-APP_STREAMING_PROTECT_LISTS = (
-    "_ProtectData",
-    "_ProtectDataEventPlaying",
-)
-
-APP_STREAMING_PROTECT_TARGETS: list[FieldTargets] = [
-    {
-        "_Range": 50.0,
-        "_MipLevel": 0,
-        "_LodLevel": 0,
-    },
-    {
-        "_Range": 100.0,
-        "_MipLevel": 1,
-        "_LodLevel": 1,
-    },
-]
+APP_STREAMING_PROTECT_TARGETS: dict[str, list[FieldTargets]] = {
+    "_ProtectData": [
+        {
+            "_Range": 40.0,
+            "_MipLevel": 0,
+            "_LodLevel": 0,
+        },
+        {
+            "_Range": 80.0,
+            "_MipLevel": 1,
+            "_LodLevel": 1,
+        },
+    ],
+    "_ProtectDataEventPlaying": [
+        {
+            "_Range": 50.0,
+            "_MipLevel": 0,
+            "_LodLevel": 0,
+        },
+        {
+            "_Range": 100.0,
+            "_MipLevel": 1,
+            "_LodLevel": 1,
+        },
+    ],
+}

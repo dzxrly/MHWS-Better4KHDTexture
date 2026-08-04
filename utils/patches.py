@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any
 
 from . import (
-    APP_STREAMING_PROTECT_LISTS,
     APP_STREAMING_PROTECT_TARGETS,
     APP_STREAMING_PLATFORM_DATA_LIST,
     APP_STREAMING_PLATFORM_FIELD,
@@ -20,8 +19,6 @@ from . import (
     GRAPHICS_RAY_TRACING_MANAGER_FIELD,
     GRAPHICS_RAY_TRACING_FIELD,
     GRAPHICS_ROOT_CLASS,
-    GRAPHICS_STREAMING_MESH_LIMIT_LIST,
-    GRAPHICS_STREAMING_MESH_LIMIT_TARGETS,
     GRAPHICS_STREAMING_TEXTURE_LIMIT_LIST,
     GRAPHICS_STREAMING_TEXTURE_LIMIT_MATCH_FIELD,
     GRAPHICS_STREAMING_TEXTURE_LIMIT_MATCH_VRAM_MB,
@@ -49,7 +46,6 @@ def patch_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
     _patch_streaming_texture_limit(data, root_fields, enums, changes)
     _patch_ray_tracing_manager(data, root_fields, enums, changes)
     _patch_pc_graphics_presets(data, root_fields, enums, changes)
-    _patch_streaming_mesh_limits(data, root_fields, enums, changes)
     return changes
 
 
@@ -66,10 +62,11 @@ def patch_app_streaming(data: JsonDict, enums: EnumLookup) -> list[str]:
         if platform not in APP_STREAMING_SELECTED_PLATFORMS:
             continue
         platform_name = APP_STREAMING_SELECTED_PLATFORMS[platform]
-        for list_name in APP_STREAMING_PROTECT_LISTS:
+        for list_name, targets in APP_STREAMING_PROTECT_TARGETS.items():
             _patch_protect_list(
                 data,
                 platform_fields.get(list_name),
+                targets,
                 enums,
                 changes,
                 f"{platform_name}.{list_name}",
@@ -195,36 +192,20 @@ def _patch_pc_graphics_presets(
         )
 
 
-def _patch_streaming_mesh_limits(
-    data: JsonDict,
-    root_fields: JsonDict,
-    enums: EnumLookup,
-    changes: list[str],
-) -> None:
-    refs = root_fields.get(GRAPHICS_STREAMING_MESH_LIMIT_LIST)
-    for index, entry in enumerate(iter_ref_fields(data, refs)):
-        _apply_field_targets(
-            entry,
-            GRAPHICS_STREAMING_MESH_LIMIT_TARGETS,
-            enums,
-            changes,
-            f"Graphics.StreamingMeshLimit[{index}]",
-        )
-
-
 def _patch_protect_list(
     data: JsonDict,
     refs: Any,
+    targets: list[FieldTargets],
     enums: EnumLookup,
     changes: list[str],
     context: str,
 ) -> None:
     entries = list(iter_ref_fields(data, refs))
-    if len(entries) < len(APP_STREAMING_PROTECT_TARGETS):
+    if len(entries) < len(targets):
         raise ValueError(
-            f"{context} must contain at least {len(APP_STREAMING_PROTECT_TARGETS)} entries"
+            f"{context} must contain at least {len(targets)} entries"
         )
-    for index, expected in enumerate(APP_STREAMING_PROTECT_TARGETS):
+    for index, expected in enumerate(targets):
         entry = entries[index]
         _apply_field_targets(
             entry,

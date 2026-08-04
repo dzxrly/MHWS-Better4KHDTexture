@@ -172,10 +172,6 @@ GRAPHICS_EXPERIMENTAL_RAY_TRACE_FIELD
 
 - _ExperimentalRayTrace
 
-GRAPHICS_STREAMING_MESH_LIMIT_LIST
-
-- _StreamingMeshLimitList
-
 目标属性和目标数值：
 
 GRAPHICS_STREAMING_TEXTURE_SETTING_MATCH_BUDGETS
@@ -192,6 +188,7 @@ GRAPHICS_STREAMING_TEXTURE_SETTING_TARGETS
 - _MinimumStreamingTextureResolution: MinimumStreamingTextureResoltuion_1024
 - _MaximumStreamingTextureResolution: MaximumStreamingTextureResolution_8192
 - _ClosestMaximumStreamingTextureResolution: MaximumStreamingTextureResolution_8192
+- _ClosestStreamingTextureDistance: 20.0
 
 GRAPHICS_STREAMING_TEXTURE_LIMIT_MATCH_VRAM_MB
 
@@ -212,11 +209,21 @@ GRAPHICS_PC_PLATFORM
 
 - _Platform: 5
 
+所有 PC usage 预设都会应用相同的高画质目标，包括默认、角色创建、过场、光追及 PC 画质分档。
+
 GRAPHICS_PC_PRESET_TARGETS
 
 - _MeshQuality: 0
 - _SamplerQuality: Anisotropic16
 - _SecondarySamplerQuality: Anisotropic8
+- _LODResolustion: MPMRLodResolution_2160p
+- _SmallObjectCullingResolution: MPMRSmallObjectCullingResolution_2160p
+- _MeshletSmallObjectCulling: 16.0
+- _StreamingMeshMinimumLOD: 0
+- _StreamingMeshletMinimumLOD: 0
+- _MeshStreamingSize: 4096
+- _TextureLoadLevelBias: 0
+- _StreamingTextureLoadLevelBias: 0
 - _GIPointCloudQuality: 0
 - _MainRaymarchResolution: Full
 - _IBLRaymarchResolution: Full
@@ -234,11 +241,8 @@ GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_TARGETS
 - _RayTracingResRatio: 1.0
 - _UseRayTracingAO: true
 
-GRAPHICS_STREAMING_MESH_LIMIT_TARGETS
-
-- _StreamingMeshMinimumLodLimit: 0
-- _StreamingMeshletMinimumLodLimit: 0
-- _MeshQuality: 0
+新版 `_StreamingMeshLimitList` 使用 `_MeshQuality` 与 `_DownVramThresholdMB` / `_UpVramThresholdMB`
+组成带回滞的 mesh streaming 状态表。构建过程完整保留该表，不再覆盖其中的质量分组、LOD 或阈值。
 
 ### `AppStreamingControllerManagerSetting.user.3`
 
@@ -282,12 +286,9 @@ APP_STREAMING_SELECTED_PLATFORMS
 - 0: Default
 - 1: PC
 
-APP_STREAMING_PROTECT_LISTS
-
-- _ProtectData
-- _ProtectDataEventPlaying
-
 APP_STREAMING_PROTECT_TARGETS
 
-- index 0: _Range 50.0, _MipLevel 0, _LodLevel 0
-- index 1: _Range 100.0, _MipLevel 1, _LodLevel 1
+- _ProtectData index 0: _Range 40.0, _MipLevel 0, _LodLevel 0
+- _ProtectData index 1: _Range 80.0, _MipLevel 1, _LodLevel 1
+- _ProtectDataEventPlaying index 0: _Range 50.0, _MipLevel 0, _LodLevel 0
+- _ProtectDataEventPlaying index 1: _Range 100.0, _MipLevel 1, _LodLevel 1
