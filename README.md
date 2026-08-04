@@ -1,10 +1,26 @@
 # Better 4K HD Texture
 
-Better 4K HD Texture 是一个面向Monster Hunter Wilds的 `user.3` 配置补丁。它针对“最高画质”预设和旧版本 4K 高清材质包，提高材质
-streaming 预算、纹理分辨率、LOD 距离、光追质量和部分 mesh/采样质量，减少高显存环境下的材质频繁卸载与重载。
+Better 4K HD Texture 是一个面向 Monster Hunter Wilds 的 `user.3` 配置补丁。它针对至少 24GB 显存的高端 PC 和旧版本 4K
+高清材质包，提高材质 streaming 预算、纹理分辨率、LOD 距离、光追质量和部分 mesh/采样质量，减少高显存环境下的材质频繁卸载、
+小型 meshlet 过早剔除和模型 LOD 回退。
 
 实测参考：3440x1440、光追开启、DLSS M 预设质量档、DLSS 3x 补帧、其他画质选项全高时，大集会所显存占用约 21GB。请只在显存充足的
 PC 上使用。
+
+## 静态 LOD 与 Streaming 策略
+
+本项目只修改游戏可序列化的 `user.3` 数据，不包含运行时 hook。当前预设按以下原则处理新版 Renderer/MPMR 数据：
+
+- 将 MPMR LOD 与小物体剔除的参考分辨率固定为 2160p，避免 DLSS 内部分辨率降低时过早切换 LOD。
+- 将普通 meshlet、最低质量 meshlet 和 SpeedTree 的小物体剔除阈值设为 `0.0`。该字段数值越大，剔除越激进。
+- 将 PC usage、mesh overcommit 路径以及 `_StreamingMeshLimitList` 中质量 0 的全部状态固定到最低 LOD 0。
+- 保留 `_StreamingMeshLimitList` 的质量分组、状态数量及 VRAM 回滞阈值，不改变新版状态机结构。
+- 使用 4096MB mesh streaming 池和 10240MB texture streaming 预算，并为其余渲染资源保留显存空间。
+- 普通游戏保护 LOD0/mip0 至 40 米，过场保护至 50 米，同时把淡入预加载范围提高到 128 米。
+- 将 dithered LOD 过渡时间缩短到 0.25 秒，减少长时间点阵淡变造成的碎裂观感。
+
+这些修改可以覆盖当前两个文件暴露出的静态 LOD/Streaming 路径，但不会禁用模型资源自身写死的 LOD，也不会设置运行时的
+`via.render.MPMR.DisableLOD`。
 
 <div align="center">
 <a href="https://github.com/dzxrly/PyREUser3">
@@ -132,6 +148,14 @@ GRAPHICS_ROOT_CLASS
 
 - AppGraphicsSettingPreset
 
+GRAPHICS_MESH_RENDERER_FIELD
+
+- _MeshRendererSetting
+
+GRAPHICS_MPMR_FIELD
+
+- _MPMR
+
 GRAPHICS_STREAMING_TEXTURE_SETTING_LIST
 
 - _StreamingTextureSettingList
@@ -172,7 +196,28 @@ GRAPHICS_EXPERIMENTAL_RAY_TRACE_FIELD
 
 - _ExperimentalRayTrace
 
+GRAPHICS_STREAMING_MESH_LIMIT_LIST
+
+- _StreamingMeshLimitList
+
+GRAPHICS_STREAMING_MESH_LIMIT_MATCH_FIELD
+
+- _MeshQuality
+
 目标属性和目标数值：
+
+GRAPHICS_MESH_RENDERER_TARGETS
+
+- _DitheredLodTransitionTime: 0.25
+- _UseGpuOcclusionCulling: true
+- _EnableShadowLod: true
+- _EnableShadowCacheUseLod: true
+
+GRAPHICS_MPMR_TARGETS
+
+- _ShadowLodUsingMainCamera: true
+- _StreamingFeedbackShadowCastLOD: true
+- _MeshletSmallObjectCullingLowest: 0.0
 
 GRAPHICS_STREAMING_TEXTURE_SETTING_MATCH_BUDGETS
 
@@ -181,7 +226,9 @@ GRAPHICS_STREAMING_TEXTURE_SETTING_MATCH_BUDGETS
 
 GRAPHICS_STREAMING_TEXTURE_SETTING_TARGETS
 
+- _StreamingTextureLoadLevelBias: 0
 - _StreamingBudgetSizeMB: 10240
+- _BreadthFirstStreaming: true
 - _BreadthFirstShortcutResolution: StreamingTextureResolution_1024
 - _VramBudgetLimitResolution: StreamingTextureResolution_1024
 - _OutOfViewTextureStreamingResolution: MPMROOVTextureResolution_1024
@@ -209,7 +256,22 @@ GRAPHICS_PC_PLATFORM
 
 - _Platform: 5
 
-所有 PC usage 预设都会应用相同的高画质目标，包括默认、角色创建、过场、光追及 PC 画质分档。
+GRAPHICS_PC_EXPECTED_USAGES
+
+- Default
+- CharMake
+- CutScene
+- Default_RayTrace
+- CharMake_RayTrace
+- CutScene_RayTrace
+- PC_Lowest
+- PC_Low
+- PC_Middle
+- PC_High
+- PC_Highest
+- GI_RayTrace
+
+以上 12 个 PC usage 预设都会应用相同的高画质目标；缺少任何一项都会使构建或验证失败。
 
 GRAPHICS_PC_PRESET_TARGETS
 
@@ -218,12 +280,26 @@ GRAPHICS_PC_PRESET_TARGETS
 - _SecondarySamplerQuality: Anisotropic8
 - _LODResolustion: MPMRLodResolution_2160p
 - _SmallObjectCullingResolution: MPMRSmallObjectCullingResolution_2160p
-- _MeshletSmallObjectCulling: 16.0
+- _MeshletSmallObjectCulling: 0.0
+- _MeshletLodBias: 0
+- _LodBias: 0
+- _LodRate: 1.0
 - _StreamingMeshMinimumLOD: 0
 - _StreamingMeshletMinimumLOD: 0
 - _MeshStreamingSize: 4096
+- _AllowOverCommitMesh: true
+- _StreamingMeshOvercommitLOD: 0
+- _SpeedTreeSmallObjectCulling: 0.0
+- _LodBiasSpeedTree: 0
+- _StreamingMeshMinimumLODSpeedTree: 0
 - _TextureLoadLevelBias: 0
 - _StreamingTextureLoadLevelBias: 0
+- _ShadowCastLODBiasMPMR: 0.0
+- _ShadowCastSpeedTreeLODBiasMPMR: 0.0
+- _ShadowCastDistanceType: FAR
+- _MeshCullingSetting: HIGHEST
+- _GrassCullingMode: FAR
+- _EnableFoliageDensityCulling: false
 - _GIPointCloudQuality: 0
 - _MainRaymarchResolution: Full
 - _IBLRaymarchResolution: Full
@@ -241,8 +317,26 @@ GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_TARGETS
 - _RayTracingResRatio: 1.0
 - _UseRayTracingAO: true
 
+GRAPHICS_STREAMING_MESH_LIMIT_SELECTED_QUALITIES
+
+- 0
+
+GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_ENTRY_COUNT
+
+- 13
+
+GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_SELECTED_ENTRY_COUNT
+
+- 5
+
+GRAPHICS_STREAMING_MESH_LIMIT_TARGETS
+
+- _StreamingMeshMinimumLodLimit: 0
+- _StreamingMeshletMinimumLodLimit: 0
+
 新版 `_StreamingMeshLimitList` 使用 `_MeshQuality` 与 `_DownVramThresholdMB` / `_UpVramThresholdMB`
-组成带回滞的 mesh streaming 状态表。构建过程完整保留该表，不再覆盖其中的质量分组、LOD 或阈值。
+组成带回滞的 mesh streaming 状态表。构建过程保留全部 13 个条目、质量分组及阈值，只把 `_MeshQuality=0` 的五个状态统一设为
+mesh/meshlet 最低 LOD 0，防止 PC 高画质预设被该状态表重新限制到 LOD1/2。
 
 ### `AppStreamingControllerManagerSetting.user.3`
 
@@ -262,8 +356,8 @@ utils.patches.patch_app_streaming
 
 `utils/__init__.py`
 
-只修改 _PlatformData 中 _Platform 为 0 和 1 的项目，对应 Default 与 PC。目标列表为 _ProtectData 和 _
-ProtectDataEventPlaying。
+只修改 `_PlatformData` 中 `_Platform` 为 0 和 1 的项目，对应 Default 与 PC。目标包括平台级预加载设置、`_ProtectData` 和
+`_ProtectDataEventPlaying`。
 
 结构定位常量：
 
@@ -285,6 +379,11 @@ APP_STREAMING_SELECTED_PLATFORMS
 
 - 0: Default
 - 1: PC
+
+APP_STREAMING_PLATFORM_TARGETS
+
+- _BaseFov: 40.0
+- _PreloadingRangeInFade: 128.0
 
 APP_STREAMING_PROTECT_TARGETS
 

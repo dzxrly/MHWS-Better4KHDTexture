@@ -6,10 +6,16 @@ from . import (
     APP_STREAMING_PROTECT_TARGETS,
     APP_STREAMING_PLATFORM_DATA_LIST,
     APP_STREAMING_PLATFORM_FIELD,
+    APP_STREAMING_PLATFORM_TARGETS,
     APP_STREAMING_ROOT_CLASS,
     APP_STREAMING_SELECTED_PLATFORMS,
     GRAPHICS_DATA_LIST,
     GRAPHICS_EXPERIMENTAL_RAY_TRACE_FIELD,
+    GRAPHICS_MESH_RENDERER_FIELD,
+    GRAPHICS_MESH_RENDERER_TARGETS,
+    GRAPHICS_MPMR_FIELD,
+    GRAPHICS_MPMR_TARGETS,
+    GRAPHICS_PC_EXPECTED_USAGES,
     GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_TARGETS,
     GRAPHICS_PC_PLATFORM,
     GRAPHICS_PC_PRESET_TARGETS,
@@ -27,6 +33,12 @@ from . import (
     GRAPHICS_STREAMING_TEXTURE_SETTING_MATCH_FIELD,
     GRAPHICS_STREAMING_TEXTURE_SETTING_MATCH_BUDGETS,
     GRAPHICS_STREAMING_TEXTURE_SETTING_TARGETS,
+    GRAPHICS_STREAMING_MESH_LIMIT_LIST,
+    GRAPHICS_STREAMING_MESH_LIMIT_MATCH_FIELD,
+    GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_ENTRY_COUNT,
+    GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_SELECTED_ENTRY_COUNT,
+    GRAPHICS_STREAMING_MESH_LIMIT_SELECTED_QUALITIES,
+    GRAPHICS_STREAMING_MESH_LIMIT_TARGETS,
     GRAPHICS_USAGE_FIELD,
     FieldTargets,
     resolve_target_value,
@@ -42,8 +54,10 @@ def patch_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
     if not isinstance(root_fields, dict):
         raise ValueError(f"{GRAPHICS_ROOT_CLASS} root has no fields")
 
+    _patch_root_renderer_settings(data, root_fields, enums, changes)
     _patch_streaming_texture_setting(data, root_fields, enums, changes)
     _patch_streaming_texture_limit(data, root_fields, enums, changes)
+    _patch_streaming_mesh_limits(data, root_fields, enums, changes)
     _patch_ray_tracing_manager(data, root_fields, enums, changes)
     _patch_pc_graphics_presets(data, root_fields, enums, changes)
     return changes
@@ -57,11 +71,20 @@ def patch_app_streaming(data: JsonDict, enums: EnumLookup) -> list[str]:
         raise ValueError(f"{APP_STREAMING_ROOT_CLASS} root has no fields")
 
     platform_refs = root_fields.get(APP_STREAMING_PLATFORM_DATA_LIST)
+    found_platforms: set[int] = set()
     for platform_fields in iter_ref_fields(data, platform_refs):
         platform = enum_int(platform_fields.get(APP_STREAMING_PLATFORM_FIELD))
         if platform not in APP_STREAMING_SELECTED_PLATFORMS:
             continue
+        found_platforms.add(platform)
         platform_name = APP_STREAMING_SELECTED_PLATFORMS[platform]
+        _apply_field_targets(
+            platform_fields,
+            APP_STREAMING_PLATFORM_TARGETS,
+            enums,
+            changes,
+            platform_name,
+        )
         for list_name, targets in APP_STREAMING_PROTECT_TARGETS.items():
             _patch_protect_list(
                 data,
@@ -71,7 +94,37 @@ def patch_app_streaming(data: JsonDict, enums: EnumLookup) -> list[str]:
                 changes,
                 f"{platform_name}.{list_name}",
             )
+    missing_platforms = set(APP_STREAMING_SELECTED_PLATFORMS) - found_platforms
+    if missing_platforms:
+        raise ValueError(
+            f"AppStreaming platforms not found: {sorted(missing_platforms)}"
+        )
     return changes
+
+
+def _patch_root_renderer_settings(
+    data: JsonDict,
+    root_fields: JsonDict,
+    enums: EnumLookup,
+    changes: list[str],
+) -> None:
+    mesh_renderer = fields(data, root_fields.get(GRAPHICS_MESH_RENDERER_FIELD))
+    _apply_field_targets(
+        mesh_renderer,
+        GRAPHICS_MESH_RENDERER_TARGETS,
+        enums,
+        changes,
+        "Graphics.MeshRendererSetting",
+    )
+
+    mpmr = fields(data, root_fields.get(GRAPHICS_MPMR_FIELD))
+    _apply_field_targets(
+        mpmr,
+        GRAPHICS_MPMR_TARGETS,
+        enums,
+        changes,
+        "Graphics.MPMR",
+    )
 
 
 def _patch_streaming_texture_setting(
@@ -131,6 +184,43 @@ def _patch_streaming_texture_limit(
     )
 
 
+def _patch_streaming_mesh_limits(
+    data: JsonDict,
+    root_fields: JsonDict,
+    enums: EnumLookup,
+    changes: list[str],
+) -> None:
+    refs = root_fields.get(GRAPHICS_STREAMING_MESH_LIMIT_LIST)
+    all_entries = list(iter_ref_fields(data, refs))
+    if len(all_entries) != GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_ENTRY_COUNT:
+        raise ValueError(
+            f"expected {GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_ENTRY_COUNT} "
+            f"streaming mesh limit entries, got {len(all_entries)}"
+        )
+    entries = [
+        entry
+        for entry in all_entries
+        if enum_int(entry.get(GRAPHICS_STREAMING_MESH_LIMIT_MATCH_FIELD))
+        in GRAPHICS_STREAMING_MESH_LIMIT_SELECTED_QUALITIES
+    ]
+    if len(entries) != GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_SELECTED_ENTRY_COUNT:
+        raise ValueError(
+            f"expected {GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_SELECTED_ENTRY_COUNT} "
+            "streaming mesh limit entries for qualities "
+            f"{sorted(GRAPHICS_STREAMING_MESH_LIMIT_SELECTED_QUALITIES)}, "
+            f"got {len(entries)}"
+        )
+    for index, entry in enumerate(entries):
+        quality = enum_int(entry.get(GRAPHICS_STREAMING_MESH_LIMIT_MATCH_FIELD))
+        _apply_field_targets(
+            entry,
+            GRAPHICS_STREAMING_MESH_LIMIT_TARGETS,
+            enums,
+            changes,
+            f"Graphics.StreamingMeshLimit[{index}:Quality={quality}]",
+        )
+
+
 def _patch_ray_tracing_manager(
     data: JsonDict,
     root_fields: JsonDict,
@@ -161,10 +251,18 @@ def _patch_pc_graphics_presets(
     ]
     if not targets:
         raise ValueError(f"PC graphics presets (_Platform={GRAPHICS_PC_PLATFORM}) not found")
+    found_usages = {enum_int(target.get(GRAPHICS_USAGE_FIELD)) for target in targets}
+    missing_usages = set(GRAPHICS_PC_EXPECTED_USAGES) - found_usages
+    if missing_usages:
+        raise ValueError(
+            "PC graphics preset usages not found: "
+            f"{sorted(missing_usages)}"
+        )
 
     for index, target in enumerate(targets):
         usage = enum_int(target.get(GRAPHICS_USAGE_FIELD))
-        context = f"Graphics.PC[{index}:Usage={usage}]"
+        usage_name = GRAPHICS_PC_EXPECTED_USAGES.get(usage, "Unknown")
+        context = f"Graphics.PC[{index}:Usage={usage_name}({usage})]"
         _apply_field_targets(
             target,
             GRAPHICS_PC_PRESET_TARGETS,

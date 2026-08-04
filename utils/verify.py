@@ -4,10 +4,16 @@ from . import (
     APP_STREAMING_PROTECT_TARGETS,
     APP_STREAMING_PLATFORM_DATA_LIST,
     APP_STREAMING_PLATFORM_FIELD,
+    APP_STREAMING_PLATFORM_TARGETS,
     APP_STREAMING_ROOT_CLASS,
     APP_STREAMING_SELECTED_PLATFORMS,
     GRAPHICS_DATA_LIST,
     GRAPHICS_EXPERIMENTAL_RAY_TRACE_FIELD,
+    GRAPHICS_MESH_RENDERER_FIELD,
+    GRAPHICS_MESH_RENDERER_TARGETS,
+    GRAPHICS_MPMR_FIELD,
+    GRAPHICS_MPMR_TARGETS,
+    GRAPHICS_PC_EXPECTED_USAGES,
     GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_TARGETS,
     GRAPHICS_PC_PLATFORM,
     GRAPHICS_PC_PRESET_TARGETS,
@@ -23,6 +29,13 @@ from . import (
     GRAPHICS_STREAMING_TEXTURE_SETTING_LIST,
     GRAPHICS_STREAMING_TEXTURE_SETTING_MATCH_FIELD,
     GRAPHICS_STREAMING_TEXTURE_SETTING_TARGETS,
+    GRAPHICS_STREAMING_MESH_LIMIT_LIST,
+    GRAPHICS_STREAMING_MESH_LIMIT_MATCH_FIELD,
+    GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_ENTRY_COUNT,
+    GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_SELECTED_ENTRY_COUNT,
+    GRAPHICS_STREAMING_MESH_LIMIT_SELECTED_QUALITIES,
+    GRAPHICS_STREAMING_MESH_LIMIT_TARGETS,
+    GRAPHICS_USAGE_FIELD,
     FieldTargets,
     resolve_target_value,
 )
@@ -34,6 +47,17 @@ def verify_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
     root = root_instance(data, GRAPHICS_ROOT_CLASS)
     root_fields = root["fields"]
     messages: list[str] = []
+
+    mesh_renderer = fields(data, root_fields[GRAPHICS_MESH_RENDERER_FIELD])
+    _expect_field_targets(
+        mesh_renderer,
+        GRAPHICS_MESH_RENDERER_TARGETS,
+        enums,
+        messages,
+    )
+
+    mpmr = fields(data, root_fields[GRAPHICS_MPMR_FIELD])
+    _expect_field_targets(mpmr, GRAPHICS_MPMR_TARGETS, enums, messages)
 
     high_stream = _find_by_any(
         iter_ref_fields(data, root_fields[GRAPHICS_STREAMING_TEXTURE_SETTING_LIST]),
@@ -62,6 +86,38 @@ def verify_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
     )
     _expect_field_targets(high_limit, GRAPHICS_STREAMING_TEXTURE_LIMIT_TARGETS, enums, messages)
 
+    all_mesh_limits = list(
+        iter_ref_fields(
+            data,
+            root_fields[GRAPHICS_STREAMING_MESH_LIMIT_LIST],
+        )
+    )
+    if len(all_mesh_limits) != GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_ENTRY_COUNT:
+        raise AssertionError(
+            f"expected {GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_ENTRY_COUNT} "
+            f"streaming mesh limit entries, got {len(all_mesh_limits)}"
+        )
+    mesh_limits = [
+        entry
+        for entry in all_mesh_limits
+        if enum_int(entry.get(GRAPHICS_STREAMING_MESH_LIMIT_MATCH_FIELD))
+        in GRAPHICS_STREAMING_MESH_LIMIT_SELECTED_QUALITIES
+    ]
+    if len(mesh_limits) != GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_SELECTED_ENTRY_COUNT:
+        raise AssertionError(
+            f"expected {GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_SELECTED_ENTRY_COUNT} "
+            "streaming mesh limit entries for qualities "
+            f"{sorted(GRAPHICS_STREAMING_MESH_LIMIT_SELECTED_QUALITIES)}, "
+            f"got {len(mesh_limits)}"
+        )
+    for mesh_limit in mesh_limits:
+        _expect_field_targets(
+            mesh_limit,
+            GRAPHICS_STREAMING_MESH_LIMIT_TARGETS,
+            enums,
+            messages,
+        )
+
     manager = fields(data, root_fields[GRAPHICS_RAY_TRACING_MANAGER_FIELD])
     _expect_field_targets(manager, GRAPHICS_RAY_TRACING_MANAGER_TARGETS, enums, messages)
 
@@ -85,6 +141,7 @@ def verify_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
 def verify_app_streaming(data: JsonDict, enums: EnumLookup) -> list[str]:
     root = root_instance(data, APP_STREAMING_ROOT_CLASS)
     messages: list[str] = []
+    found_platforms: set[int] = set()
     for platform_fields in iter_ref_fields(
         data,
         root["fields"][APP_STREAMING_PLATFORM_DATA_LIST],
@@ -94,10 +151,28 @@ def verify_app_streaming(data: JsonDict, enums: EnumLookup) -> list[str]:
             not in APP_STREAMING_SELECTED_PLATFORMS
         ):
             continue
+        platform = enum_int(platform_fields.get(APP_STREAMING_PLATFORM_FIELD))
+        found_platforms.add(platform)
+        _expect_field_targets(
+            platform_fields,
+            APP_STREAMING_PLATFORM_TARGETS,
+            enums,
+            messages,
+        )
         for list_name, targets in APP_STREAMING_PROTECT_TARGETS.items():
             entries = list(iter_ref_fields(data, platform_fields[list_name]))
+            if len(entries) < len(targets):
+                raise AssertionError(
+                    f"platform {platform} {list_name} must contain at least "
+                    f"{len(targets)} entries"
+                )
             for entry, values in zip(entries, targets):
                 _expect_field_targets(entry, values, enums, messages)
+    missing_platforms = set(APP_STREAMING_SELECTED_PLATFORMS) - found_platforms
+    if missing_platforms:
+        raise AssertionError(
+            f"AppStreaming platforms not found: {sorted(missing_platforms)}"
+        )
     return messages
 
 
@@ -109,6 +184,12 @@ def _find_pc_graphics_presets(data: JsonDict, root_fields: JsonDict) -> list[Jso
     ]
     if not entries:
         raise AssertionError("PC graphics presets not found")
+    found_usages = {enum_int(entry.get(GRAPHICS_USAGE_FIELD)) for entry in entries}
+    missing_usages = set(GRAPHICS_PC_EXPECTED_USAGES) - found_usages
+    if missing_usages:
+        raise AssertionError(
+            f"PC graphics preset usages not found: {sorted(missing_usages)}"
+        )
     return entries
 
 
