@@ -47,7 +47,7 @@ GRAPHICS_STREAMING_TEXTURE_SETTING_MATCH_BUDGETS = {3072, 10240, 12288}
 
 GRAPHICS_STREAMING_TEXTURE_SETTING_TARGETS: FieldTargets = {
     "_StreamingTextureLoadLevelBias": 0,
-    "_StreamingBudgetSizeMB": 12288,
+    "_StreamingBudgetSizeMB": 10240,
     "_BreadthFirstStreaming": True,
     "_BreadthFirstShortcutResolution": enum_target(
         "via.render.StreamingTextureResolution",
@@ -82,7 +82,7 @@ GRAPHICS_STREAMING_TEXTURE_LIMIT_MATCH_VRAM_MB = {17000, 20000}
 
 GRAPHICS_STREAMING_TEXTURE_LIMIT_TARGETS: FieldTargets = {
     "_VRAMThresholdSizeMB": 20000,
-    "_StreamingBudgetLimitSizeMB": 12288,
+    "_StreamingBudgetLimitSizeMB": 10240,
 }
 
 GRAPHICS_RAY_TRACING_MANAGER_FIELD = "_RayTracingManagerSetting"
@@ -137,7 +137,7 @@ GRAPHICS_PC_PRESET_TARGETS: FieldTargets = {
     "_LodRate": 1.0,
     "_StreamingMeshMinimumLOD": 0,
     "_StreamingMeshletMinimumLOD": 0,
-    "_MeshStreamingSize": 5120,
+    "_MeshStreamingSize": 4096,
     "_AllowOverCommitMesh": True,
     "_StreamingMeshOvercommitLOD": 0,
     "_SpeedTreeSmallObjectCulling": 0.0,
@@ -189,7 +189,9 @@ GRAPHICS_PC_RAY_TRACING_TARGETS: FieldTargets = {
     "_ShadowEnable": True,
     "_TransparentEnable": True,
     "_EnableLod": True,
+    "_EnableOverwriteLod": True,
     "_OverwriteLod": 0,
+    "_FoliageRayTracingLodOffset": 0,
 }
 
 GRAPHICS_EXPERIMENTAL_RAY_TRACE_FIELD = "_ExperimentalRayTrace"

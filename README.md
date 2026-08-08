@@ -11,7 +11,7 @@ Better 4K HD Texture 是一个面向 Monster Hunter Wilds 的 `user.3` 配置补
 - 将普通 meshlet、最低质量 meshlet 和 SpeedTree 的小物体剔除阈值设为 `0.0`。该字段数值越大，剔除越激进。
 - 将 PC usage、mesh overcommit 路径以及 `_StreamingMeshLimitList` 中质量 0 的全部状态固定到最低 LOD 0。
 - 保留 `_StreamingMeshLimitList` 的质量分组、状态数量及 VRAM 回滞阈值，不改变新版状态机结构。
-- 使用 5120MB mesh streaming 池和 12288MB texture streaming 预算；minimum、OOV、breadth-first 与 VRAM-limit 分辨率均为 2048。
+- 使用 4096MB mesh streaming 池和 10240MB texture streaming 预算；minimum、OOV、breadth-first 与 VRAM-limit 分辨率均为 2048。
 - 普通游戏保护 LOD0/mip0 至 40 米，过场保护至 50 米，同时把淡入预加载范围提高到 192 米。
 - 使用 0.5 秒 dithered LOD 过渡，并关闭 shadow LOD、shadow cache LOD 与两种 shadow caster culling。
 
@@ -231,7 +231,7 @@ GRAPHICS_STREAMING_TEXTURE_SETTING_MATCH_BUDGETS
 GRAPHICS_STREAMING_TEXTURE_SETTING_TARGETS
 
 - _StreamingTextureLoadLevelBias: 0
-- _StreamingBudgetSizeMB: 12288
+- _StreamingBudgetSizeMB: 10240
 - _BreadthFirstStreaming: true
 - _BreadthFirstShortcutResolution: StreamingTextureResolution_2048
 - _VramBudgetLimitResolution: StreamingTextureResolution_2048
@@ -249,7 +249,7 @@ GRAPHICS_STREAMING_TEXTURE_LIMIT_MATCH_VRAM_MB
 GRAPHICS_STREAMING_TEXTURE_LIMIT_TARGETS
 
 - _VRAMThresholdSizeMB: 20000
-- _StreamingBudgetLimitSizeMB: 12288
+- _StreamingBudgetLimitSizeMB: 10240
 
 GRAPHICS_RAY_TRACING_MANAGER_TARGETS
 
@@ -296,7 +296,7 @@ GRAPHICS_PC_PRESET_TARGETS
 - _LodRate: 1.0
 - _StreamingMeshMinimumLOD: 0
 - _StreamingMeshletMinimumLOD: 0
-- _MeshStreamingSize: 5120
+- _MeshStreamingSize: 4096
 - _AllowOverCommitMesh: true
 - _StreamingMeshOvercommitLOD: 0
 - _SpeedTreeSmallObjectCulling: 0.0
@@ -337,7 +337,9 @@ GRAPHICS_PC_RAY_TRACING_TARGETS
 - _ShadowEnable: true
 - _TransparentEnable: true
 - _EnableLod: true
+- _EnableOverwriteLod: true
 - _OverwriteLod: 0
+- _FoliageRayTracingLodOffset: 0
 
 GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_TARGETS
 
@@ -353,8 +355,9 @@ GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_RANGE_TARGETS（只用于 usage 3/4/5）
 - _SpecularRayLength: 300.0
 - _FrustumFarPlane: 300.0
 
-`_EnableLod=true` 与 `_OverwriteLod=0` 不会改写 `_EnableOverwriteLod` 或 `_FoliageRayTracingLodOffset`。分辨率和
-`_UseSolidAngleCulling` 应用于全部 12 个 PC usage，射线长度与 frustum 范围只应用于 usage 3/4/5。
+`_EnableLod=true`、`_EnableOverwriteLod=true`、`_OverwriteLod=0` 与 `_FoliageRayTracingLodOffset=0` 应用于全部
+12 个 PC usage，使普通 RT 几何与植被统一使用 LOD0。分辨率和 `_UseSolidAngleCulling` 同样应用于全部 12 个 PC usage，
+射线长度与 frustum 范围只应用于 usage 3/4/5。
 
 GRAPHICS_STREAMING_MESH_LIMIT_SELECTED_QUALITIES
 
