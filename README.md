@@ -1,11 +1,7 @@
 # Better 4K HD Texture
 
-Better 4K HD Texture 是一个面向 Monster Hunter Wilds 的 `user.3` 配置补丁。当前配置按用户在
-`MHWS_Better4KHDTexture_Modification_Plan_TODO.md` 中勾选的 32GB 显存档实现，重点改善近景小物体、纹理常驻、阴影 caster、
+Better 4K HD Texture 是一个面向 Monster Hunter Wilds 的 `user.3` 配置补丁，重点改善近景小物体、纹理常驻、阴影 caster、
 通用渲染质量与光追几何。它只修改游戏可序列化的数据，不包含运行时 hook。
-
-旧版实测参考为 3440x1440、光追开启、DLSS M 预设质量档、DLSS 3x 补帧、其他画质全高时约 21GB 显存；新版又提高了纹理与 mesh
-预算，因此应视为 32GB+ 配置。若在 24GB 显卡上使用，必须重新记录峰值显存、转镜头纹理恢复和长时间游玩稳定性。
 
 ## 静态 LOD 与 Streaming 策略
 
@@ -19,46 +15,8 @@ Better 4K HD Texture 是一个面向 Monster Hunter Wilds 的 `user.3` 配置补
 - 普通游戏保护 LOD0/mip0 至 40 米，过场保护至 50 米，同时把淡入预加载范围提高到 192 米。
 - 使用 0.5 秒 dithered LOD 过渡，并关闭 shadow LOD、shadow cache LOD 与两种 shadow caster culling。
 
-这些修改可以覆盖当前两个文件暴露出的静态 LOD/Streaming 路径，但不会禁用模型资源自身写死的 LOD，也不会设置运行时的
+这些修改可以覆盖相关 `user.3` 暴露出的静态 LOD/Streaming 路径，但不会禁用模型资源自身写死的 LOD，也不会设置运行时的
 `via.render.MPMR.DisableLOD`。
-
-## 2026-08-08 勾选方案实施记录
-
-本节是后续维护者和 AI Agent 的权威变更摘要。没有再次取得用户授权时，不要把未勾选文件加入 `TASKS`。
-
-### 已纳入构建的源文件
-
-- `GraphicsPreset.user.3`：原项目文件；下载目录副本 SHA-256 与项目基底一致，未覆盖。
-- `AppStreamingControllerManagerSetting.user.3`：原项目文件；下载目录副本 SHA-256 与项目基底一致，未覆盖。
-- `GrassCullingSetting.user.3`：由用户从 `Downloads/natives` 提供并移动至 `data/natives`。
-
-### 已实施的稳定选项 ID
-
-- 小物体/LOD：`GP-SO-001-A` 至 `GP-SO-005-A`、`GP-LOD-001-A` 至 `GP-LOD-004-A`、`GP-OCC-001-A`、
-  `GP-OCC-002-A`、`GP-OCC-003-A`、`GP-TRANS-001-B`。
-- 阴影/采样：`GP-SHADOWLOD-001-B`、`GP-SHADOWLOD-002-A`、`GP-SHADOWLOD-003-C`、
-  `GP-SAMPLER-001-A`、`GP-SAMPLER-002-B`。
-- Streaming：`GP-TEX-001-B`、`GP-MESH-001-B`、`GP-TEX-002-A`、`GP-TEX-003-B`、`GP-TEX-004-B`、
-  `GP-TEX-005-B`、`ASC-PROTECT-001-A`、`ASC-EVENT-001-A`、`ASC-FADE-001-B`、`ASC-FOV-001-A`。
-- 通用画质：`GP-USAGE-001` 至 `GP-USAGE-011`、`GP-AO-001-B`、`GP-AO-002-B`、`GP-PARTICLE-001-C`、
-  `GP-STRAND-001-B`、`GP-SDF-001-C`、`GP-BUFFER-002`。
-- Grass：`FILE-GRASS-CULLING`、`GRASS-DENSITY-001-B`、`GRASS-RANGE-001-B`、`GRASS-CAP-001-B`。
-- 光追：`RT-GEO-003`、`RT-RES-001`、`RT-RANGE-001`、`RT-CULL-001`、`RT-QUALITY-001-A`。
-
-### 未选文件保护规则
-
-用户明确要求：所有未勾选的 `FILE-*-CULLING` 对应 `user.3` 均不得迁入、修改或打包。本次只有
-`FILE-GRASS-CULLING` 被勾选。因此 Moss、Enemy、NPC、EmProp 等剔除配置没有加入项目；`Downloads/natives` 中其余候选文件也不属于
-当前构建输入。`STAGE-PROXY-001-A` 同样要求不修改 StageSetting。
-
-### 关键语义说明
-
-- enum 字段必须通过 `data/Enums_Internal.json` 的类型和成员名解析，不按整数大小猜测质量顺序。
-- `_StrandShadingQuality` 是未绑定 enum 的整数；用户明确选择官方 `High=0` 映射，验证仍需关注实机表现。
-- `RT-GEO-003` 的实现是 `_EnableLod=true`、`_OverwriteLod=0`。由于 `RT-GEO-001` 和 `RT-GEO-002` 未勾选，
-  不修改 `_EnableOverwriteLod` 和 `_FoliageRayTracingLodOffset`。
-- `RT-RANGE-001` 只应用于 usage 3/4/5（Default/CharMake/CutScene RayTrace）；RT 分辨率和 solid-angle culling 则覆盖全部 12 个 PC usage。
-- Grass 必须保持 4 个 `_Data` 与 12 个 `_StageData` 条目；只修改选择指定的距离、密度和容量字段。
 
 <div align="center">
 <a href="https://github.com/dzxrly/PyREUser3">
@@ -146,7 +104,7 @@ assets。
 - `main.py`：构建入口，调用 `utils.build.main()`
 - `utils/build.py`：构建流程、输出清理、patch、verify、打包调度
 - `utils/__init__.py`：集中维护目标属性和目标数值
-- `utils/patches.py`：读取 `utils/__init__.py` 中的目标定义，修改三个已选择的 `user.3`；新增 Grass 文件由
+- `utils/patches.py`：读取 `utils/__init__.py` 中的目标定义，修改构建任务中的三个 `user.3`；Grass 文件由
   `patch_grass_culling()` 处理
 - `utils/verify.py`：读取同一份目标定义，构建后校验字段值
 - `utils/package.py`：写入 `modinfo.ini`、复制 `cover.png`、生成 zip
@@ -161,7 +119,9 @@ assets。
 ## AI Agent 修改索引
 
 需要调整目标属性或目标数值时，优先修改 `utils/__init__.py`。`utils/patches.py` 和 `utils/verify.py`
-会读取同一份定义，通常不需要同步改两处逻辑。构建源文件位于 data/natives/STM/System/SystemSetting/。
+会读取同一份定义，通常不需要同步改两处逻辑。构建源文件位于 `data/natives/STM/System/SystemSetting/`，`utils.build.TASKS`
+只包含本索引列出的 GraphicsPreset、AppStreaming 和 GrassCulling。枚举字段必须通过 `data/Enums_Internal.json` 的类型与成员名解析，
+不能根据整数大小推断画质顺序。
 
 ### `GraphicsPreset.user.3`
 
@@ -367,6 +327,8 @@ GRAPHICS_PC_PRESET_TARGETS
 - _IBLRaymarchScale: 1.0
 - _IBLPartialDrawFrame: 4
 
+`_StrandShadingQuality` 在目标 schema 中是未绑定 enum 的整数；当前值 `0` 对应官方预设中的 High。
+
 GRAPHICS_PC_RAY_TRACING_TARGETS
 
 - _Enable: true
@@ -390,6 +352,9 @@ GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_RANGE_TARGETS（只用于 usage 3/4/5）
 - _DiffuseRayLength: 150.0
 - _SpecularRayLength: 300.0
 - _FrustumFarPlane: 300.0
+
+`_EnableLod=true` 与 `_OverwriteLod=0` 不会改写 `_EnableOverwriteLod` 或 `_FoliageRayTracingLodOffset`。分辨率和
+`_UseSolidAngleCulling` 应用于全部 12 个 PC usage，射线长度与 frustum 范围只应用于 usage 3/4/5。
 
 GRAPHICS_STREAMING_MESH_LIMIT_SELECTED_QUALITIES
 
@@ -483,9 +448,10 @@ APP_STREAMING_PROTECT_TARGETS
 
 ## 修改与验证不变量
 
-- `utils.build.TASKS` 当前必须恰好包含 GraphicsPreset、AppStreaming 与 GrassCulling 三个 `user.3`。
-- 所有目标定义由 patch 与 verify 共享，不能只改 patch 而不更新验证范围。
-- GraphicsPreset 必须找到 12 个 PC usage、13 个 mesh-limit 条目以及其中 5 个 `_MeshQuality=0` 条目。
-- Grass 必须保留 4+12 条列表结构；未勾选的 `FILE-*-CULLING` 文件不能出现在 `data/natives`、`TASKS` 或最终 zip。
-- 构建成功必须同时满足：三个文件均完成 pack、`Verification passed`、zip 成员只包含三个 `user.3` 加 `modinfo.ini` 与 `cover.png`。
-- 修改目标后运行 `python main.py`，并检查 `output/output.log` 的每文件 change count、原始/重建 readable JSON 和 verification 段。
+- `utils.build.TASKS` 是构建输入的唯一依据，当前固定为 GraphicsPreset、AppStreaming 和 GrassCulling；其他文件不会因为存在于本地而自动打包。
+- patch 与 verify 共用 `utils/__init__.py` 中的目标定义。新增或删除目标字段时，必须确认对应 patch 路径和验证范围仍然一致。
+- enum 目标必须由 `EnumLookup` 解析 `data/Enums_Internal.json` 中的类型与成员，禁止直接依据枚举整数大小推断质量高低。
+- GraphicsPreset 必须包含 12 个 PC usage、13 个 streaming mesh limit 条目，以及其中 5 个 `_MeshQuality=0` 条目；数量不符时构建或验证必须失败。
+- GrassCulling 必须保持 4 个 `_Data` 和 12 个 `_StageData` 条目，并保留原有顺序、stage ID 与 culling mode；数量不符时不得继续打包。
+- 成功构建必须生成三个已验证的 `user.3`、`modinfo.ini` 和 `cover.png`。最终 zip 不得包含 `TASKS` 之外的配置文件。
+- 修改目标或构建逻辑后必须运行 `python main.py`，并检查 `output/output.log` 中每个文件的变更数量、重建 JSON 与 `Verification passed` 结果。
