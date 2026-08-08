@@ -10,9 +10,17 @@ from typing import Callable
 from .build_log import OutputLog
 from .enums import EnumLookup
 from .package import read_version, write_mod_archive, write_mod_assets
-from .patches import patch_app_streaming, patch_graphics_preset
+from .patches import (
+    patch_app_streaming,
+    patch_graphics_preset,
+    patch_grass_culling,
+)
 from .pyreuser3_cached import CachedREUser3Converter
-from .verify import verify_app_streaming, verify_graphics_preset
+from .verify import (
+    verify_app_streaming,
+    verify_graphics_preset,
+    verify_grass_culling,
+)
 
 
 PatchFn = Callable[[dict, EnumLookup], list[str]]
@@ -36,6 +44,11 @@ TASKS = [
         Path("natives/STM/System/SystemSetting/AppStreamingControllerManagerSetting.user.3"),
         patch_app_streaming,
         verify_app_streaming,
+    ),
+    User3Task(
+        Path("natives/STM/System/SystemSetting/GrassCullingSetting.user.3"),
+        patch_grass_culling,
+        verify_grass_culling,
     ),
 ]
 

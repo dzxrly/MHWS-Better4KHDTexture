@@ -17,8 +17,10 @@ from . import (
     GRAPHICS_MPMR_TARGETS,
     GRAPHICS_PC_EXPECTED_USAGES,
     GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_TARGETS,
+    GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_RANGE_TARGETS,
     GRAPHICS_PC_PLATFORM,
     GRAPHICS_PC_PRESET_TARGETS,
+    GRAPHICS_PC_RAY_TRACE_RANGE_USAGES,
     GRAPHICS_PC_RAY_TRACING_TARGETS,
     GRAPHICS_PLATFORM_FIELD,
     GRAPHICS_RAY_TRACING_MANAGER_TARGETS,
@@ -40,6 +42,12 @@ from . import (
     GRAPHICS_STREAMING_MESH_LIMIT_SELECTED_QUALITIES,
     GRAPHICS_STREAMING_MESH_LIMIT_TARGETS,
     GRAPHICS_USAGE_FIELD,
+    GRASS_CULLING_DATA_LIST,
+    GRASS_CULLING_DATA_TARGETS,
+    GRASS_CULLING_ROOT_CLASS,
+    GRASS_CULLING_ROOT_TARGETS,
+    GRASS_CULLING_STAGE_DATA_LIST,
+    GRASS_CULLING_STAGE_DATA_TARGETS,
     FieldTargets,
     resolve_target_value,
 )
@@ -99,6 +107,39 @@ def patch_app_streaming(data: JsonDict, enums: EnumLookup) -> list[str]:
         raise ValueError(
             f"AppStreaming platforms not found: {sorted(missing_platforms)}"
         )
+    return changes
+
+
+def patch_grass_culling(data: JsonDict, enums: EnumLookup) -> list[str]:
+    changes: list[str] = []
+    root = root_instance(data, GRASS_CULLING_ROOT_CLASS)
+    root_fields = root.get("fields")
+    if not isinstance(root_fields, dict):
+        raise ValueError(f"{GRASS_CULLING_ROOT_CLASS} root has no fields")
+
+    _apply_field_targets(
+        root_fields,
+        GRASS_CULLING_ROOT_TARGETS,
+        enums,
+        changes,
+        "GrassCulling",
+    )
+    _patch_exact_target_list(
+        data,
+        root_fields.get(GRASS_CULLING_DATA_LIST),
+        GRASS_CULLING_DATA_TARGETS,
+        enums,
+        changes,
+        "GrassCulling.Data",
+    )
+    _patch_exact_target_list(
+        data,
+        root_fields.get(GRASS_CULLING_STAGE_DATA_LIST),
+        GRASS_CULLING_STAGE_DATA_TARGETS,
+        enums,
+        changes,
+        "GrassCulling.StageData",
+    )
     return changes
 
 
@@ -288,6 +329,14 @@ def _patch_pc_graphics_presets(
             changes,
             f"{context}.ExperimentalRayTrace",
         )
+        if usage in GRAPHICS_PC_RAY_TRACE_RANGE_USAGES:
+            _apply_field_targets(
+                experimental,
+                GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_RANGE_TARGETS,
+                enums,
+                changes,
+                f"{context}.ExperimentalRayTrace",
+            )
 
 
 def _patch_protect_list(
@@ -305,6 +354,29 @@ def _patch_protect_list(
         )
     for index, expected in enumerate(targets):
         entry = entries[index]
+        _apply_field_targets(
+            entry,
+            expected,
+            enums,
+            changes,
+            f"{context}[{index}]",
+        )
+
+
+def _patch_exact_target_list(
+    data: JsonDict,
+    refs: Any,
+    targets: list[FieldTargets],
+    enums: EnumLookup,
+    changes: list[str],
+    context: str,
+) -> None:
+    entries = list(iter_ref_fields(data, refs))
+    if len(entries) != len(targets):
+        raise ValueError(
+            f"{context} must contain exactly {len(targets)} entries, got {len(entries)}"
+        )
+    for index, (entry, expected) in enumerate(zip(entries, targets)):
         _apply_field_targets(
             entry,
             expected,
