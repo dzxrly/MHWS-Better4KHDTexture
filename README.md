@@ -11,7 +11,8 @@ Better 4K HD Texture 是一个面向 Monster Hunter Wilds 的 `user.3` 配置补
 - 将普通 meshlet、最低质量 meshlet 和 SpeedTree 的小物体剔除阈值设为 `0.0`。该字段数值越大，剔除越激进。
 - 将 PC usage、mesh overcommit 路径以及 `_StreamingMeshLimitList` 中质量 0 的全部状态固定到最低 LOD 0。
 - 保留 `_StreamingMeshLimitList` 的质量分组、状态数量及 VRAM 回滞阈值，不改变新版状态机结构。
-- 使用 4096MB mesh streaming 池和 10240MB texture streaming 预算；minimum、OOV、breadth-first 与 VRAM-limit 分辨率均为 2048。
+- 使用 4096MB mesh streaming 池和 10240MB texture streaming 预算；minimum、OOV、breadth-first 与 VRAM-limit 分辨率均为 1024。
+- 将普通 streaming 资源的过期时间从 60 帧提高到 300 帧，对话状态的 6000 帧保持不变。
 - 普通游戏保护 LOD0/mip0 至 40 米，过场保护至 50 米，同时把淡入预加载范围提高到 192 米。
 - 使用 0.5 秒 dithered LOD 过渡，并关闭 shadow LOD、shadow cache LOD 与两种 shadow caster culling。
 
@@ -35,6 +36,7 @@ Better 4K HD Texture 是一个面向 Monster Hunter Wilds 的 `user.3` 配置补
 压缩包内还包含：
 
 - `natives/STM/System/SystemSetting/GraphicsPreset.user.3`
+- `natives/STM/System/SystemSetting/GraphicsManagerSetting.user.3`
 - `natives/STM/System/SystemSetting/AppStreamingControllerManagerSetting.user.3`
 - `natives/STM/System/SystemSetting/GrassCullingSetting.user.3`
 - `modinfo.ini`
@@ -43,6 +45,7 @@ Better 4K HD Texture 是一个面向 Monster Hunter Wilds 的 `user.3` 配置补
 ## 本地构建
 
 ```powershell
+conda activate torch
 python -m pip install -r requirements.txt
 python tools/build_data.py download
 python main.py
@@ -104,7 +107,7 @@ assets。
 - `main.py`：构建入口，调用 `utils.build.main()`
 - `utils/build.py`：构建流程、输出清理、patch、verify、打包调度
 - `utils/__init__.py`：集中维护目标属性和目标数值
-- `utils/patches.py`：读取 `utils/__init__.py` 中的目标定义，修改构建任务中的三个 `user.3`；Grass 文件由
+- `utils/patches.py`：读取 `utils/__init__.py` 中的目标定义，修改构建任务中的四个 `user.3`；Grass 文件由
   `patch_grass_culling()` 处理
 - `utils/verify.py`：读取同一份目标定义，构建后校验字段值
 - `utils/package.py`：写入 `modinfo.ini`、复制 `cover.png`、生成 zip
@@ -120,8 +123,19 @@ assets。
 
 需要调整目标属性或目标数值时，优先修改 `utils/__init__.py`。`utils/patches.py` 和 `utils/verify.py`
 会读取同一份定义，通常不需要同步改两处逻辑。构建源文件位于 `data/natives/STM/System/SystemSetting/`，`utils.build.TASKS`
-只包含本索引列出的 GraphicsPreset、AppStreaming 和 GrassCulling。枚举字段必须通过 `data/Enums_Internal.json` 的类型与成员名解析，
+只包含本索引列出的 GraphicsManager、GraphicsPreset、AppStreaming 和 GrassCulling。枚举字段必须通过 `data/Enums_Internal.json` 的类型与成员名解析，
 不能根据整数大小推断画质顺序。
+
+### `GraphicsManagerSetting.user.3`
+
+源文件：`data/natives/STM/System/SystemSetting/GraphicsManagerSetting.user.3`
+
+- root class：`GraphicsManagerSetting`
+- patch：`utils.patches.patch_graphics_manager`
+- verify：`utils.verify.verify_graphics_manager`
+- `_StreamingExpirationFrameCount`: 300
+
+只修改普通 streaming 资源的过期帧数；`_Dialogue_StreamingExpirationFrameCount` 保持原始的 6000。
 
 ### `GraphicsPreset.user.3`
 
@@ -233,10 +247,10 @@ GRAPHICS_STREAMING_TEXTURE_SETTING_TARGETS
 - _StreamingTextureLoadLevelBias: 0
 - _StreamingBudgetSizeMB: 10240
 - _BreadthFirstStreaming: true
-- _BreadthFirstShortcutResolution: StreamingTextureResolution_2048
-- _VramBudgetLimitResolution: StreamingTextureResolution_2048
-- _OutOfViewTextureStreamingResolution: MPMROOVTextureResolution_2048
-- _MinimumStreamingTextureResolution: MinimumStreamingTextureResoltuion_2048
+- _BreadthFirstShortcutResolution: StreamingTextureResolution_1024
+- _VramBudgetLimitResolution: StreamingTextureResolution_1024
+- _OutOfViewTextureStreamingResolution: MPMROOVTextureResolution_1024
+- _MinimumStreamingTextureResolution: MinimumStreamingTextureResoltuion_1024
 - _MaximumStreamingTextureResolution: MaximumStreamingTextureResolution_8192
 - _ClosestMaximumStreamingTextureResolution: MaximumStreamingTextureResolution_8192
 - _ClosestStreamingTextureDistance: 40.0
@@ -451,10 +465,11 @@ APP_STREAMING_PROTECT_TARGETS
 
 ## 修改与验证不变量
 
-- `utils.build.TASKS` 是构建输入的唯一依据，当前固定为 GraphicsPreset、AppStreaming 和 GrassCulling；其他文件不会因为存在于本地而自动打包。
+- `utils.build.TASKS` 是构建输入的唯一依据，当前固定为 GraphicsManager、GraphicsPreset、AppStreaming 和 GrassCulling；其他文件不会因为存在于本地而自动打包。
 - patch 与 verify 共用 `utils/__init__.py` 中的目标定义。新增或删除目标字段时，必须确认对应 patch 路径和验证范围仍然一致。
 - enum 目标必须由 `EnumLookup` 解析 `data/Enums_Internal.json` 中的类型与成员，禁止直接依据枚举整数大小推断质量高低。
 - GraphicsPreset 必须包含 12 个 PC usage、13 个 streaming mesh limit 条目，以及其中 5 个 `_MeshQuality=0` 条目；数量不符时构建或验证必须失败。
+- GraphicsManager 只修改普通 streaming 资源过期帧数，对话专用过期帧数和其他字段保持源文件值。
 - GrassCulling 必须保持 4 个 `_Data` 和 12 个 `_StageData` 条目，并保留原有顺序、stage ID 与 culling mode；数量不符时不得继续打包。
-- 成功构建必须生成三个已验证的 `user.3`、`modinfo.ini` 和 `cover.png`。最终 zip 不得包含 `TASKS` 之外的配置文件。
+- 成功构建必须生成四个已验证的 `user.3`、`modinfo.ini` 和 `cover.png`。最终 zip 不得包含 `TASKS` 之外的配置文件。
 - 修改目标或构建逻辑后必须运行 `python main.py`，并检查 `output/output.log` 中每个文件的变更数量、重建 JSON 与 `Verification passed` 结果。

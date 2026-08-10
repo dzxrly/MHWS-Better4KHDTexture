@@ -9,6 +9,8 @@ from . import (
     APP_STREAMING_SELECTED_PLATFORMS,
     GRAPHICS_DATA_LIST,
     GRAPHICS_EXPERIMENTAL_RAY_TRACE_FIELD,
+    GRAPHICS_MANAGER_ROOT_CLASS,
+    GRAPHICS_MANAGER_TARGETS,
     GRAPHICS_MESH_RENDERER_FIELD,
     GRAPHICS_MESH_RENDERER_TARGETS,
     GRAPHICS_MPMR_FIELD,
@@ -49,6 +51,18 @@ from . import (
 )
 from .enums import EnumLookup, enum_int
 from .repack import JsonDict, fields, iter_ref_fields, root_instance
+
+
+def verify_graphics_manager(data: JsonDict, enums: EnumLookup) -> list[str]:
+    root = root_instance(data, GRAPHICS_MANAGER_ROOT_CLASS)
+    messages: list[str] = []
+    _expect_field_targets(
+        root["fields"],
+        GRAPHICS_MANAGER_TARGETS,
+        enums,
+        messages,
+    )
+    return messages
 
 
 def verify_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:

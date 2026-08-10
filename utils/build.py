@@ -12,12 +12,14 @@ from .enums import EnumLookup
 from .package import read_version, write_mod_archive, write_mod_assets
 from .patches import (
     patch_app_streaming,
+    patch_graphics_manager,
     patch_graphics_preset,
     patch_grass_culling,
 )
 from .pyreuser3_cached import CachedREUser3Converter
 from .verify import (
     verify_app_streaming,
+    verify_graphics_manager,
     verify_graphics_preset,
     verify_grass_culling,
 )
@@ -35,6 +37,11 @@ class User3Task:
 
 
 TASKS = [
+    User3Task(
+        Path("natives/STM/System/SystemSetting/GraphicsManagerSetting.user.3"),
+        patch_graphics_manager,
+        verify_graphics_manager,
+    ),
     User3Task(
         Path("natives/STM/System/SystemSetting/GraphicsPreset.user.3"),
         patch_graphics_preset,

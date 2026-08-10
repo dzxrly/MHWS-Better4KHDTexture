@@ -21,6 +21,12 @@ def resolve_target_value(value: TargetValue, enums: Any) -> object:
     return value
 
 
+GRAPHICS_MANAGER_ROOT_CLASS = "GraphicsManagerSetting"
+GRAPHICS_MANAGER_TARGETS: FieldTargets = {
+    "_StreamingExpirationFrameCount": 300,
+}
+
+
 GRAPHICS_ROOT_CLASS = "AppGraphicsSettingPreset"
 GRAPHICS_MESH_RENDERER_FIELD = "_MeshRendererSetting"
 GRAPHICS_MESH_RENDERER_TARGETS: FieldTargets = {
@@ -51,19 +57,19 @@ GRAPHICS_STREAMING_TEXTURE_SETTING_TARGETS: FieldTargets = {
     "_BreadthFirstStreaming": True,
     "_BreadthFirstShortcutResolution": enum_target(
         "via.render.StreamingTextureResolution",
-        "StreamingTextureResolution_2048",
+        "StreamingTextureResolution_1024",
     ),
     "_VramBudgetLimitResolution": enum_target(
         "via.render.StreamingTextureResolution",
-        "StreamingTextureResolution_2048",
+        "StreamingTextureResolution_1024",
     ),
     "_OutOfViewTextureStreamingResolution": enum_target(
         "via.render.MPMROOVTextureResolution",
-        "MPMROOVTextureResolution_2048",
+        "MPMROOVTextureResolution_1024",
     ),
     "_MinimumStreamingTextureResolution": enum_target(
         "via.render.RenderConfig.MinimumStreamingTextureResoltuion",
-        "MinimumStreamingTextureResoltuion_2048",
+        "MinimumStreamingTextureResoltuion_1024",
     ),
     "_MaximumStreamingTextureResolution": enum_target(
         "via.render.RenderConfig.MaximumStreamingTextureResolution",
