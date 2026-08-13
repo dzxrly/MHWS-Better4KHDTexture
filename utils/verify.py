@@ -18,9 +18,9 @@ from . import (
     GRAPHICS_PC_EXPECTED_USAGES,
     GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_TARGETS,
     GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_RANGE_TARGETS,
+    GRAPHICS_PC_HIGHEST_USAGE,
     GRAPHICS_PC_PLATFORM,
     GRAPHICS_PC_PRESET_TARGETS,
-    GRAPHICS_PC_RAY_TRACE_RANGE_USAGES,
     GRAPHICS_PC_RAY_TRACING_TARGETS,
     GRAPHICS_PLATFORM_FIELD,
     GRAPHICS_RAY_TRACING_MANAGER_TARGETS,
@@ -30,8 +30,9 @@ from . import (
     GRAPHICS_STREAMING_TEXTURE_LIMIT_LIST,
     GRAPHICS_STREAMING_TEXTURE_LIMIT_MATCH_FIELD,
     GRAPHICS_STREAMING_TEXTURE_LIMIT_TARGETS,
+    GRAPHICS_STREAMING_TEXTURE_SETTING_EXPECTED_QUALITIES,
     GRAPHICS_STREAMING_TEXTURE_SETTING_LIST,
-    GRAPHICS_STREAMING_TEXTURE_SETTING_MATCH_FIELD,
+    GRAPHICS_STREAMING_TEXTURE_SETTING_QUALITY_FIELD,
     GRAPHICS_STREAMING_TEXTURE_SETTING_TARGETS,
     GRAPHICS_STREAMING_MESH_LIMIT_LIST,
     GRAPHICS_STREAMING_MESH_LIMIT_MATCH_FIELD,
@@ -50,7 +51,7 @@ from . import (
     resolve_target_value,
 )
 from .enums import EnumLookup, enum_int
-from .repack import JsonDict, fields, iter_ref_fields, root_instance
+from .repack import JsonDict, fields, instance, iter_ref_fields, root_instance
 
 
 def verify_graphics_manager(data: JsonDict, enums: EnumLookup) -> list[str]:
@@ -81,21 +82,39 @@ def verify_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
     mpmr = fields(data, root_fields[GRAPHICS_MPMR_FIELD])
     _expect_field_targets(mpmr, GRAPHICS_MPMR_TARGETS, enums, messages)
 
-    high_stream = _find_by_any(
-        iter_ref_fields(data, root_fields[GRAPHICS_STREAMING_TEXTURE_SETTING_LIST]),
-        GRAPHICS_STREAMING_TEXTURE_SETTING_MATCH_FIELD,
-        {
-            GRAPHICS_STREAMING_TEXTURE_SETTING_TARGETS[
-                GRAPHICS_STREAMING_TEXTURE_SETTING_MATCH_FIELD
-            ]
-        },
+    texture_settings = list(
+        iter_ref_fields(
+            data,
+            root_fields[GRAPHICS_STREAMING_TEXTURE_SETTING_LIST],
+        )
     )
-    _expect_field_targets(
-        high_stream,
-        GRAPHICS_STREAMING_TEXTURE_SETTING_TARGETS,
-        enums,
-        messages,
-    )
+    if len(texture_settings) != len(GRAPHICS_STREAMING_TEXTURE_SETTING_EXPECTED_QUALITIES):
+        raise AssertionError(
+            f"expected {len(GRAPHICS_STREAMING_TEXTURE_SETTING_EXPECTED_QUALITIES)} "
+            f"streaming texture setting entries, got {len(texture_settings)}"
+        )
+    for index, (texture_setting, expected_quality) in enumerate(
+        zip(texture_settings, GRAPHICS_STREAMING_TEXTURE_SETTING_EXPECTED_QUALITIES)
+    ):
+        actual_quality = texture_setting.get(GRAPHICS_STREAMING_TEXTURE_SETTING_QUALITY_FIELD)
+        resolved_quality = resolve_target_value(expected_quality, enums)
+        if enum_int(actual_quality) != enum_int(resolved_quality):
+            messages.append(
+                f"StreamingTextureSetting[{index}]."
+                f"{GRAPHICS_STREAMING_TEXTURE_SETTING_QUALITY_FIELD}: "
+                f"expected {resolved_quality!r}, got {actual_quality!r}"
+            )
+        entry_messages: list[str] = []
+        _expect_field_targets(
+            texture_setting,
+            GRAPHICS_STREAMING_TEXTURE_SETTING_TARGETS,
+            enums,
+            entry_messages,
+        )
+        messages.extend(
+            f"StreamingTextureSetting[{index}].{message}"
+            for message in entry_messages
+        )
 
     high_limit = _find_by_any(
         iter_ref_fields(data, root_fields[GRAPHICS_STREAMING_TEXTURE_LIMIT_LIST]),
@@ -143,7 +162,13 @@ def verify_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
     manager = fields(data, root_fields[GRAPHICS_RAY_TRACING_MANAGER_FIELD])
     _expect_field_targets(manager, GRAPHICS_RAY_TRACING_MANAGER_TARGETS, enums, messages)
 
-    for preset in _find_pc_graphics_presets(data, root_fields):
+    presets = _find_pc_graphics_presets(data, root_fields)
+    template = next(
+        preset
+        for preset in presets
+        if enum_int(preset.get(GRAPHICS_USAGE_FIELD)) == GRAPHICS_PC_HIGHEST_USAGE
+    )
+    for preset in presets:
         _expect_field_targets(preset, GRAPHICS_PC_PRESET_TARGETS, enums, messages)
 
         ray_tracing = fields(data, preset[GRAPHICS_RAY_TRACING_FIELD])
@@ -156,13 +181,22 @@ def verify_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
             enums,
             messages,
         )
+        _expect_field_targets(
+            experimental,
+            GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_RANGE_TARGETS,
+            enums,
+            messages,
+        )
+
         usage = enum_int(preset.get(GRAPHICS_USAGE_FIELD))
-        if usage in GRAPHICS_PC_RAY_TRACE_RANGE_USAGES:
-            _expect_field_targets(
-                experimental,
-                GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_RANGE_TARGETS,
-                enums,
+        if usage != GRAPHICS_PC_HIGHEST_USAGE:
+            _expect_same_instance_payload(
+                data,
+                template,
+                preset,
                 messages,
+                f"PC[{GRAPHICS_PC_EXPECTED_USAGES[usage]}]",
+                ignored_fields={GRAPHICS_PLATFORM_FIELD, GRAPHICS_USAGE_FIELD},
             )
 
     return messages
@@ -244,12 +278,129 @@ def _find_pc_graphics_presets(data: JsonDict, root_fields: JsonDict) -> list[Jso
     if not entries:
         raise AssertionError("PC graphics presets not found")
     found_usages = {enum_int(entry.get(GRAPHICS_USAGE_FIELD)) for entry in entries}
-    missing_usages = set(GRAPHICS_PC_EXPECTED_USAGES) - found_usages
-    if missing_usages:
+    expected_usages = set(GRAPHICS_PC_EXPECTED_USAGES)
+    if len(entries) != len(expected_usages) or found_usages != expected_usages:
         raise AssertionError(
-            f"PC graphics preset usages not found: {sorted(missing_usages)}"
+            "PC graphics preset usage set mismatch: "
+            f"expected {sorted(expected_usages)}, got {sorted(found_usages)} "
+            f"across {len(entries)} entries"
         )
     return entries
+
+
+def _expect_same_instance_payload(
+    data: JsonDict,
+    expected: JsonDict,
+    actual: JsonDict,
+    messages: list[str],
+    context: str,
+    ignored_fields: set[str] | None = None,
+    visited_refs: set[tuple[int, int]] | None = None,
+) -> None:
+    if ignored_fields is None:
+        ignored_fields = set()
+    if visited_refs is None:
+        visited_refs = set()
+    expected_names = set(expected) - ignored_fields
+    actual_names = set(actual) - ignored_fields
+    if expected_names != actual_names:
+        messages.append(
+            f"{context}: field mismatch versus PC_Highest: "
+            f"missing={sorted(expected_names - actual_names)}, "
+            f"extra={sorted(actual_names - expected_names)}"
+        )
+        return
+
+    for name in expected:
+        if name in ignored_fields:
+            continue
+        expected_value = expected[name]
+        actual_value = actual[name]
+        if _is_instance_ref(expected_value):
+            if not _is_instance_ref(actual_value):
+                messages.append(f"{context}.{name}: expected compatible instance ref")
+                continue
+            expected_ref = int(expected_value["ref_instance_id"])
+            actual_ref = int(actual_value["ref_instance_id"])
+            ref_pair = (expected_ref, actual_ref)
+            if ref_pair in visited_refs:
+                continue
+            visited_refs.add(ref_pair)
+            expected_instance = instance(data, expected_value)
+            actual_instance = instance(data, actual_value)
+            if expected_instance.get("_class") != actual_instance.get("_class"):
+                messages.append(
+                    f"{context}.{name}: class mismatch versus PC_Highest: "
+                    f"{expected_instance.get('_class')!r} != "
+                    f"{actual_instance.get('_class')!r}"
+                )
+                continue
+            expected_fields = expected_instance.get("fields")
+            actual_fields = actual_instance.get("fields")
+            if not isinstance(expected_fields, dict) or not isinstance(actual_fields, dict):
+                messages.append(f"{context}.{name}: referenced instance has no fields")
+                continue
+            _expect_same_instance_payload(
+                data,
+                expected_fields,
+                actual_fields,
+                messages,
+                f"{context}.{name}",
+                visited_refs=visited_refs,
+            )
+        elif isinstance(expected_value, list) and _contains_instance_refs(expected_value):
+            if not isinstance(actual_value, list) or len(expected_value) != len(actual_value):
+                messages.append(f"{context}.{name}: reference list shape mismatch")
+                continue
+            for index, (expected_item, actual_item) in enumerate(
+                zip(expected_value, actual_value)
+            ):
+                if not _is_instance_ref(expected_item) or not _is_instance_ref(actual_item):
+                    messages.append(
+                        f"{context}.{name}[{index}]: expected compatible instance ref"
+                    )
+                    continue
+                ref_pair = (
+                    int(expected_item["ref_instance_id"]),
+                    int(actual_item["ref_instance_id"]),
+                )
+                if ref_pair in visited_refs:
+                    continue
+                visited_refs.add(ref_pair)
+                expected_instance = instance(data, expected_item)
+                actual_instance = instance(data, actual_item)
+                expected_fields = expected_instance.get("fields")
+                actual_fields = actual_instance.get("fields")
+                if (
+                    expected_instance.get("_class") != actual_instance.get("_class")
+                    or not isinstance(expected_fields, dict)
+                    or not isinstance(actual_fields, dict)
+                ):
+                    messages.append(
+                        f"{context}.{name}[{index}]: reference structure mismatch"
+                    )
+                    continue
+                _expect_same_instance_payload(
+                    data,
+                    expected_fields,
+                    actual_fields,
+                    messages,
+                    f"{context}.{name}[{index}]",
+                    visited_refs=visited_refs,
+                )
+        elif actual_value != expected_value:
+            messages.append(
+                f"{context}.{name}: expected PC_Highest value "
+                f"{expected_value!r}, got {actual_value!r}"
+            )
+
+
+def _is_instance_ref(value: object) -> bool:
+    return isinstance(value, dict) and isinstance(value.get("ref_instance_id"), int)
+
+
+def _contains_instance_refs(values: list[object]) -> bool:
+    return any(_is_instance_ref(value) for value in values)
 
 
 def _find_by_any(entries: object, field_name: str, values: set[object]) -> JsonDict:

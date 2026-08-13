@@ -48,8 +48,14 @@ GRAPHICS_MPMR_TARGETS: FieldTargets = {
 }
 
 GRAPHICS_STREAMING_TEXTURE_SETTING_LIST = "_StreamingTextureSettingList"
-GRAPHICS_STREAMING_TEXTURE_SETTING_MATCH_FIELD = "_StreamingBudgetSizeMB"
-GRAPHICS_STREAMING_TEXTURE_SETTING_MATCH_BUDGETS = {3072, 10240, 12288}
+GRAPHICS_STREAMING_TEXTURE_SETTING_QUALITY_FIELD = "_Quality"
+GRAPHICS_STREAMING_TEXTURE_SETTING_EXPECTED_QUALITIES = (
+    enum_target("via.render.RenderConfig.Quality", "LOWEST"),
+    enum_target("via.render.RenderConfig.Quality", "LOW"),
+    enum_target("via.render.RenderConfig.Quality", "STANDARD"),
+    enum_target("via.render.RenderConfig.Quality", "HIGH"),
+    enum_target("via.render.RenderConfig.Quality", "HIGHEST"),
+)
 
 GRAPHICS_STREAMING_TEXTURE_SETTING_TARGETS: FieldTargets = {
     "_StreamingTextureLoadLevelBias": 0,
@@ -115,8 +121,13 @@ GRAPHICS_PC_EXPECTED_USAGES = {
     103: "PC_Highest",
     104: "GI_RayTrace",
 }
+GRAPHICS_PC_HIGHEST_USAGE = 103
 
 GRAPHICS_PC_PRESET_TARGETS: FieldTargets = {
+    "_StreamingTextureQuality": enum_target(
+        "ace.cGraphicsSetting.STREAMING_TEXTURE_QUALITY",
+        "HIGHEST",
+    ),
     "_MeshQuality": 0,
     "_SamplerQuality": enum_target("via.render.SamplerQuality", "Anisotropic16"),
     "_SecondarySamplerQuality": enum_target("via.render.SamplerQuality", "Anisotropic16"),
@@ -209,7 +220,6 @@ GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_TARGETS: FieldTargets = {
     "_UseSolidAngleCulling": False,
 }
 
-GRAPHICS_PC_RAY_TRACE_RANGE_USAGES = {3, 4, 5}
 GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_RANGE_TARGETS: FieldTargets = {
     "_DiffuseRayLength": 150.0,
     "_SpecularRayLength": 300.0,

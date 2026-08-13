@@ -9,9 +9,11 @@ Better 4K HD Texture 是一个面向 Monster Hunter Wilds 的 `user.3` 配置补
 
 - 将 MPMR LOD 与小物体剔除的参考分辨率固定为 2160p，避免 DLSS 内部分辨率降低时过早切换 LOD。
 - 将普通 meshlet、最低质量 meshlet 和 SpeedTree 的小物体剔除阈值设为 `0.0`。该字段数值越大，剔除越激进。
-- 将 PC usage、mesh overcommit 路径以及 `_StreamingMeshLimitList` 中质量 0 的全部状态固定到最低 LOD 0。
+- 以增强后的 `PC_Highest` 为唯一模板覆盖全部 12 个 PC usage，只保留各条目的 `_Platform` 与 `_Usage` 身份字段。
+- 将 mesh overcommit 路径以及 `_StreamingMeshLimitList` 中质量 0 的全部状态固定到最低 LOD 0。
 - 保留 `_StreamingMeshLimitList` 的质量分组、状态数量及 VRAM 回滞阈值，不改变新版状态机结构。
 - 使用 4096MB mesh streaming 池和 10240MB texture streaming 预算；minimum、OOV、breadth-first 与 VRAM-limit 分辨率均为 1024。
+- 保留纹理列表的 LOWEST 至 HIGHEST 五个索引，但将五档实际载荷全部统一到同一套最高配置。
 - 将普通 streaming 资源的过期时间从 60 帧提高到 300 帧，对话状态的 6000 帧保持不变。
 - 普通游戏保护 LOD0/mip0 至 40 米，过场保护至 50 米，同时把淡入预加载范围提高到 192 米。
 - 使用 0.5 秒 dithered LOD 过渡，并关闭 shadow LOD、shadow cache LOD 与两种 shadow caster culling。
@@ -173,9 +175,9 @@ GRAPHICS_STREAMING_TEXTURE_SETTING_LIST
 
 - _StreamingTextureSettingList
 
-GRAPHICS_STREAMING_TEXTURE_SETTING_MATCH_FIELD
+GRAPHICS_STREAMING_TEXTURE_SETTING_QUALITY_FIELD
 
-- _StreamingBudgetSizeMB
+- _Quality
 
 GRAPHICS_STREAMING_TEXTURE_LIMIT_LIST
 
@@ -236,11 +238,16 @@ GRAPHICS_MPMR_TARGETS
 - _StreamingFeedbackShadowCastLOD: true
 - _MeshletSmallObjectCullingLowest: 0.0
 
-GRAPHICS_STREAMING_TEXTURE_SETTING_MATCH_BUDGETS
+GRAPHICS_STREAMING_TEXTURE_SETTING_EXPECTED_QUALITIES
 
-- 3072
-- 10240
-- 12288
+- LOWEST
+- LOW
+- STANDARD
+- HIGH
+- HIGHEST
+
+以上五个 `_Quality` 只作为列表索引保留；构建会按顺序验证五档完整存在，并将每一档的其余字段统一应用
+`GRAPHICS_STREAMING_TEXTURE_SETTING_TARGETS`。这样无论游戏通过质量枚举还是 VRAM 自动路径命中哪一项，实际纹理载荷都相同。
 
 GRAPHICS_STREAMING_TEXTURE_SETTING_TARGETS
 
@@ -289,10 +296,13 @@ GRAPHICS_PC_EXPECTED_USAGES
 - PC_Highest
 - GI_RayTrace
 
-以上 12 个 PC usage 预设都会应用相同的高画质目标；缺少任何一项都会使构建或验证失败。
+构建先用下列目标增强原始 `PC_Highest`，再把它的完整顶层字段载荷及 `_RayTracing`、`_ExperimentalRayTrace`
+嵌套载荷复制到其余 11 个 PC usage。复制时只保留每个条目原有的 `_Platform` 与 `_Usage`；缺少、多出或重复任何 PC usage，
+以及字段结构不兼容，都会使构建或验证失败。
 
 GRAPHICS_PC_PRESET_TARGETS
 
+- _StreamingTextureQuality: HIGHEST
 - _MeshQuality: 0
 - _SamplerQuality: Anisotropic16
 - _SecondarySamplerQuality: Anisotropic16
@@ -363,15 +373,14 @@ GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_TARGETS
 - _SpecularResolution: 1
 - _UseSolidAngleCulling: false
 
-GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_RANGE_TARGETS（只用于 usage 3/4/5）
+GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_RANGE_TARGETS
 
 - _DiffuseRayLength: 150.0
 - _SpecularRayLength: 300.0
 - _FrustumFarPlane: 300.0
 
-`_EnableLod=true`、`_EnableOverwriteLod=true`、`_OverwriteLod=0` 与 `_FoliageRayTracingLodOffset=0` 应用于全部
-12 个 PC usage，使普通 RT 几何与植被统一使用 LOD0。分辨率和 `_UseSolidAngleCulling` 同样应用于全部 12 个 PC usage，
-射线长度与 frustum 范围只应用于 usage 3/4/5。
+上述普通与实验性光追目标（包括射线长度和 frustum 范围）先应用到 `PC_Highest` 模板，再随完整模板覆盖到全部
+12 个 PC usage，使普通 RT 几何与植被统一使用 LOD0，并消除 usage 切换造成的预设差异。
 
 GRAPHICS_STREAMING_MESH_LIMIT_SELECTED_QUALITIES
 
@@ -468,7 +477,9 @@ APP_STREAMING_PROTECT_TARGETS
 - `utils.build.TASKS` 是构建输入的唯一依据，当前固定为 GraphicsManager、GraphicsPreset、AppStreaming 和 GrassCulling；其他文件不会因为存在于本地而自动打包。
 - patch 与 verify 共用 `utils/__init__.py` 中的目标定义。新增或删除目标字段时，必须确认对应 patch 路径和验证范围仍然一致。
 - enum 目标必须由 `EnumLookup` 解析 `data/Enums_Internal.json` 中的类型与成员，禁止直接依据枚举整数大小推断质量高低。
-- GraphicsPreset 必须包含 12 个 PC usage、13 个 streaming mesh limit 条目，以及其中 5 个 `_MeshQuality=0` 条目；数量不符时构建或验证必须失败。
+- GraphicsPreset 必须按 LOWEST、LOW、STANDARD、HIGH、HIGHEST 顺序包含 5 个 streaming texture setting 条目，且五档实际载荷必须完全命中同一目标。
+- GraphicsPreset 必须恰好包含预期的 12 个 PC usage；除 `_Platform` 与 `_Usage` 外，其余顶层字段及嵌套引用载荷都必须与增强后的 `PC_Highest` 完全一致。
+- GraphicsPreset 必须包含 13 个 streaming mesh limit 条目，以及其中 5 个 `_MeshQuality=0` 条目；数量不符时构建或验证必须失败。
 - GraphicsManager 只修改普通 streaming 资源过期帧数，对话专用过期帧数和其他字段保持源文件值。
 - GrassCulling 必须保持 4 个 `_Data` 和 12 个 `_StageData` 条目，并保留原有顺序、stage ID 与 culling mode；数量不符时不得继续打包。
 - 成功构建必须生成四个已验证的 `user.3`、`modinfo.ini` 和 `cover.png`。最终 zip 不得包含 `TASKS` 之外的配置文件。
