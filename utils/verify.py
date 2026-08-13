@@ -27,6 +27,7 @@ from . import (
     GRAPHICS_RAY_TRACING_MANAGER_FIELD,
     GRAPHICS_RAY_TRACING_FIELD,
     GRAPHICS_ROOT_CLASS,
+    GRAPHICS_STREAMING_TEXTURE_LIMIT_EXPECTED_THRESHOLDS,
     GRAPHICS_STREAMING_TEXTURE_LIMIT_LIST,
     GRAPHICS_STREAMING_TEXTURE_LIMIT_MATCH_FIELD,
     GRAPHICS_STREAMING_TEXTURE_LIMIT_TARGETS,
@@ -35,10 +36,7 @@ from . import (
     GRAPHICS_STREAMING_TEXTURE_SETTING_QUALITY_FIELD,
     GRAPHICS_STREAMING_TEXTURE_SETTING_TARGETS,
     GRAPHICS_STREAMING_MESH_LIMIT_LIST,
-    GRAPHICS_STREAMING_MESH_LIMIT_MATCH_FIELD,
     GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_ENTRY_COUNT,
-    GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_SELECTED_ENTRY_COUNT,
-    GRAPHICS_STREAMING_MESH_LIMIT_SELECTED_QUALITIES,
     GRAPHICS_STREAMING_MESH_LIMIT_TARGETS,
     GRAPHICS_USAGE_FIELD,
     GRASS_CULLING_DATA_LIST,
@@ -116,16 +114,35 @@ def verify_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
             for message in entry_messages
         )
 
-    high_limit = _find_by_any(
-        iter_ref_fields(data, root_fields[GRAPHICS_STREAMING_TEXTURE_LIMIT_LIST]),
-        GRAPHICS_STREAMING_TEXTURE_LIMIT_MATCH_FIELD,
-        {
-            GRAPHICS_STREAMING_TEXTURE_LIMIT_TARGETS[
-                GRAPHICS_STREAMING_TEXTURE_LIMIT_MATCH_FIELD
-            ]
-        },
+    texture_limits = list(
+        iter_ref_fields(data, root_fields[GRAPHICS_STREAMING_TEXTURE_LIMIT_LIST])
     )
-    _expect_field_targets(high_limit, GRAPHICS_STREAMING_TEXTURE_LIMIT_TARGETS, enums, messages)
+    if len(texture_limits) != len(GRAPHICS_STREAMING_TEXTURE_LIMIT_EXPECTED_THRESHOLDS):
+        raise AssertionError(
+            f"expected {len(GRAPHICS_STREAMING_TEXTURE_LIMIT_EXPECTED_THRESHOLDS)} "
+            f"streaming texture limit entries, got {len(texture_limits)}"
+        )
+    for index, (texture_limit, expected_threshold) in enumerate(
+        zip(texture_limits, GRAPHICS_STREAMING_TEXTURE_LIMIT_EXPECTED_THRESHOLDS)
+    ):
+        actual_threshold = texture_limit.get(GRAPHICS_STREAMING_TEXTURE_LIMIT_MATCH_FIELD)
+        if actual_threshold != expected_threshold:
+            messages.append(
+                f"StreamingTextureLimit[{index}]."
+                f"{GRAPHICS_STREAMING_TEXTURE_LIMIT_MATCH_FIELD}: "
+                f"expected {expected_threshold}, got {actual_threshold!r}"
+            )
+        entry_messages: list[str] = []
+        _expect_field_targets(
+            texture_limit,
+            GRAPHICS_STREAMING_TEXTURE_LIMIT_TARGETS,
+            enums,
+            entry_messages,
+        )
+        messages.extend(
+            f"StreamingTextureLimit[{index}].{message}"
+            for message in entry_messages
+        )
 
     all_mesh_limits = list(
         iter_ref_fields(
@@ -138,20 +155,7 @@ def verify_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
             f"expected {GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_ENTRY_COUNT} "
             f"streaming mesh limit entries, got {len(all_mesh_limits)}"
         )
-    mesh_limits = [
-        entry
-        for entry in all_mesh_limits
-        if enum_int(entry.get(GRAPHICS_STREAMING_MESH_LIMIT_MATCH_FIELD))
-        in GRAPHICS_STREAMING_MESH_LIMIT_SELECTED_QUALITIES
-    ]
-    if len(mesh_limits) != GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_SELECTED_ENTRY_COUNT:
-        raise AssertionError(
-            f"expected {GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_SELECTED_ENTRY_COUNT} "
-            "streaming mesh limit entries for qualities "
-            f"{sorted(GRAPHICS_STREAMING_MESH_LIMIT_SELECTED_QUALITIES)}, "
-            f"got {len(mesh_limits)}"
-        )
-    for mesh_limit in mesh_limits:
+    for mesh_limit in all_mesh_limits:
         _expect_field_targets(
             mesh_limit,
             GRAPHICS_STREAMING_MESH_LIMIT_TARGETS,
@@ -401,13 +405,6 @@ def _is_instance_ref(value: object) -> bool:
 
 def _contains_instance_refs(values: list[object]) -> bool:
     return any(_is_instance_ref(value) for value in values)
-
-
-def _find_by_any(entries: object, field_name: str, values: set[object]) -> JsonDict:
-    for entry in entries:
-        if isinstance(entry, dict) and entry.get(field_name) in values:
-            return entry
-    raise AssertionError(f"entry not found for {field_name} in {sorted(values)!r}")
 
 
 def _expect(target: JsonDict, name: str, expected: object, messages: list[str]) -> None:

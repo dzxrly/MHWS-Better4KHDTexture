@@ -30,9 +30,9 @@ from . import (
     GRAPHICS_RAY_TRACING_MANAGER_FIELD,
     GRAPHICS_RAY_TRACING_FIELD,
     GRAPHICS_ROOT_CLASS,
+    GRAPHICS_STREAMING_TEXTURE_LIMIT_EXPECTED_THRESHOLDS,
     GRAPHICS_STREAMING_TEXTURE_LIMIT_LIST,
     GRAPHICS_STREAMING_TEXTURE_LIMIT_MATCH_FIELD,
-    GRAPHICS_STREAMING_TEXTURE_LIMIT_MATCH_VRAM_MB,
     GRAPHICS_STREAMING_TEXTURE_LIMIT_TARGETS,
     GRAPHICS_STREAMING_TEXTURE_SETTING_EXPECTED_QUALITIES,
     GRAPHICS_STREAMING_TEXTURE_SETTING_LIST,
@@ -41,8 +41,6 @@ from . import (
     GRAPHICS_STREAMING_MESH_LIMIT_LIST,
     GRAPHICS_STREAMING_MESH_LIMIT_MATCH_FIELD,
     GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_ENTRY_COUNT,
-    GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_SELECTED_ENTRY_COUNT,
-    GRAPHICS_STREAMING_MESH_LIMIT_SELECTED_QUALITIES,
     GRAPHICS_STREAMING_MESH_LIMIT_TARGETS,
     GRAPHICS_USAGE_FIELD,
     GRASS_CULLING_DATA_LIST,
@@ -228,24 +226,27 @@ def _patch_streaming_texture_limit(
 ) -> None:
     refs = root_fields.get(GRAPHICS_STREAMING_TEXTURE_LIMIT_LIST)
     entries = list(iter_ref_fields(data, refs))
-    if not entries:
-        raise ValueError(f"{GRAPHICS_STREAMING_TEXTURE_LIMIT_LIST} is empty")
-    target = next(
-        (
-            entry
-            for entry in entries
-            if entry.get(GRAPHICS_STREAMING_TEXTURE_LIMIT_MATCH_FIELD)
-            in GRAPHICS_STREAMING_TEXTURE_LIMIT_MATCH_VRAM_MB
-        ),
-        entries[-1],
-    )
-    _apply_field_targets(
-        target,
-        GRAPHICS_STREAMING_TEXTURE_LIMIT_TARGETS,
-        enums,
-        changes,
-        "Graphics.StreamingTextureLimit",
-    )
+    if len(entries) != len(GRAPHICS_STREAMING_TEXTURE_LIMIT_EXPECTED_THRESHOLDS):
+        raise ValueError(
+            f"expected {len(GRAPHICS_STREAMING_TEXTURE_LIMIT_EXPECTED_THRESHOLDS)} "
+            f"streaming texture limit entries, got {len(entries)}"
+        )
+    for index, (entry, expected_threshold) in enumerate(
+        zip(entries, GRAPHICS_STREAMING_TEXTURE_LIMIT_EXPECTED_THRESHOLDS)
+    ):
+        actual_threshold = entry.get(GRAPHICS_STREAMING_TEXTURE_LIMIT_MATCH_FIELD)
+        if actual_threshold != expected_threshold:
+            raise ValueError(
+                f"streaming texture limit entry {index} has unexpected threshold: "
+                f"expected {expected_threshold}, got {actual_threshold!r}"
+            )
+        _apply_field_targets(
+            entry,
+            GRAPHICS_STREAMING_TEXTURE_LIMIT_TARGETS,
+            enums,
+            changes,
+            f"Graphics.StreamingTextureLimit[{index}:VRAM={actual_threshold}MB]",
+        )
 
 
 def _patch_streaming_mesh_limits(
@@ -261,20 +262,7 @@ def _patch_streaming_mesh_limits(
             f"expected {GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_ENTRY_COUNT} "
             f"streaming mesh limit entries, got {len(all_entries)}"
         )
-    entries = [
-        entry
-        for entry in all_entries
-        if enum_int(entry.get(GRAPHICS_STREAMING_MESH_LIMIT_MATCH_FIELD))
-        in GRAPHICS_STREAMING_MESH_LIMIT_SELECTED_QUALITIES
-    ]
-    if len(entries) != GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_SELECTED_ENTRY_COUNT:
-        raise ValueError(
-            f"expected {GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_SELECTED_ENTRY_COUNT} "
-            "streaming mesh limit entries for qualities "
-            f"{sorted(GRAPHICS_STREAMING_MESH_LIMIT_SELECTED_QUALITIES)}, "
-            f"got {len(entries)}"
-        )
-    for index, entry in enumerate(entries):
+    for index, entry in enumerate(all_entries):
         quality = enum_int(entry.get(GRAPHICS_STREAMING_MESH_LIMIT_MATCH_FIELD))
         _apply_field_targets(
             entry,
