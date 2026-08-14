@@ -15,6 +15,8 @@ from .patches import (
     patch_graphics_manager,
     patch_graphics_preset,
     patch_grass_culling,
+    patch_option_graphics,
+    patch_option_graphics_preset,
 )
 from .pyreuser3_cached import CachedREUser3Converter
 from .verify import (
@@ -22,6 +24,8 @@ from .verify import (
     verify_graphics_manager,
     verify_graphics_preset,
     verify_grass_culling,
+    verify_option_graphics,
+    verify_option_graphics_preset,
 )
 
 
@@ -46,6 +50,16 @@ TASKS = [
         Path("natives/STM/System/SystemSetting/GraphicsPreset.user.3"),
         patch_graphics_preset,
         verify_graphics_preset,
+    ),
+    User3Task(
+        Path("natives/STM/GameDesign/Common/Option/OptionGraphicsData.user.3"),
+        patch_option_graphics,
+        verify_option_graphics,
+    ),
+    User3Task(
+        Path("natives/STM/GameDesign/Common/Option/OptionGraphicsPresetData.user.3"),
+        patch_option_graphics_preset,
+        verify_option_graphics_preset,
     ),
     User3Task(
         Path("natives/STM/System/SystemSetting/AppStreamingControllerManagerSetting.user.3"),

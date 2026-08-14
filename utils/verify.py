@@ -45,6 +45,21 @@ from . import (
     GRASS_CULLING_ROOT_TARGETS,
     GRASS_CULLING_STAGE_DATA_LIST,
     GRASS_CULLING_STAGE_DATA_TARGETS,
+    OPTION_GRAPHICS_ITEMS_FIELD,
+    OPTION_GRAPHICS_MESH_EXPECTED_OPTIONS,
+    OPTION_GRAPHICS_MESH_OPTION_FIELD,
+    OPTION_GRAPHICS_MESH_SETTING_FIELD,
+    OPTION_GRAPHICS_MESH_TARGETS,
+    OPTION_GRAPHICS_PRESET_CULLING_EXPECTED_QUALITIES,
+    OPTION_GRAPHICS_PRESET_CULLING_LIST,
+    OPTION_GRAPHICS_PRESET_CULLING_QUALITY_FIELD,
+    OPTION_GRAPHICS_PRESET_CULLING_TARGETS,
+    OPTION_GRAPHICS_PRESET_ROOT_CLASS,
+    OPTION_GRAPHICS_ROOT_CLASS,
+    OPTION_GRAPHICS_SKY_CLOUD_EXPECTED_OPTIONS,
+    OPTION_GRAPHICS_SKY_CLOUD_OPTION_FIELD,
+    OPTION_GRAPHICS_SKY_CLOUD_SETTING_FIELD,
+    OPTION_GRAPHICS_SKY_CLOUD_TARGETS,
     FieldTargets,
     resolve_target_value,
 )
@@ -203,6 +218,57 @@ def verify_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
                 ignored_fields={GRAPHICS_PLATFORM_FIELD, GRAPHICS_USAGE_FIELD},
             )
 
+    return messages
+
+
+def verify_option_graphics(data: JsonDict, enums: EnumLookup) -> list[str]:
+    root = root_instance(data, OPTION_GRAPHICS_ROOT_CLASS)
+    root_fields = root["fields"]
+    messages: list[str] = []
+
+    mesh_setting = fields(data, root_fields[OPTION_GRAPHICS_MESH_SETTING_FIELD])
+    _expect_keyed_target_list(
+        data,
+        mesh_setting[OPTION_GRAPHICS_ITEMS_FIELD],
+        OPTION_GRAPHICS_MESH_OPTION_FIELD,
+        OPTION_GRAPHICS_MESH_EXPECTED_OPTIONS,
+        OPTION_GRAPHICS_MESH_TARGETS,
+        enums,
+        messages,
+        "OptionGraphics.MeshQuality",
+    )
+
+    sky_cloud_setting = fields(
+        data,
+        root_fields[OPTION_GRAPHICS_SKY_CLOUD_SETTING_FIELD],
+    )
+    _expect_keyed_target_list(
+        data,
+        sky_cloud_setting[OPTION_GRAPHICS_ITEMS_FIELD],
+        OPTION_GRAPHICS_SKY_CLOUD_OPTION_FIELD,
+        OPTION_GRAPHICS_SKY_CLOUD_EXPECTED_OPTIONS,
+        OPTION_GRAPHICS_SKY_CLOUD_TARGETS,
+        enums,
+        messages,
+        "OptionGraphics.SkyCloudQuality",
+    )
+    return messages
+
+
+def verify_option_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
+    root = root_instance(data, OPTION_GRAPHICS_PRESET_ROOT_CLASS)
+    root_fields = root["fields"]
+    messages: list[str] = []
+    _expect_keyed_target_list(
+        data,
+        root_fields[OPTION_GRAPHICS_PRESET_CULLING_LIST],
+        OPTION_GRAPHICS_PRESET_CULLING_QUALITY_FIELD,
+        OPTION_GRAPHICS_PRESET_CULLING_EXPECTED_QUALITIES,
+        OPTION_GRAPHICS_PRESET_CULLING_TARGETS,
+        enums,
+        messages,
+        "OptionGraphicsPreset.CullingSettings",
+    )
     return messages
 
 
@@ -447,3 +513,35 @@ def _expect_exact_target_list(
         entry_messages: list[str] = []
         _expect_field_targets(entry, expected, enums, entry_messages)
         messages.extend(f"{context}[{index}].{message}" for message in entry_messages)
+
+
+def _expect_keyed_target_list(
+    data: JsonDict,
+    refs: object,
+    key_field: str,
+    expected_keys: tuple[object, ...],
+    targets: FieldTargets,
+    enums: EnumLookup,
+    messages: list[str],
+    context: str,
+) -> None:
+    entries = list(iter_ref_fields(data, refs))
+    if len(entries) != len(expected_keys):
+        messages.append(
+            f"{context}: expected exactly {len(expected_keys)} entries, "
+            f"got {len(entries)}"
+        )
+        return
+    for index, (entry, expected_key) in enumerate(zip(entries, expected_keys)):
+        expected = resolve_target_value(expected_key, enums)
+        actual = entry.get(key_field)
+        if enum_int(actual) != enum_int(expected):
+            messages.append(
+                f"{context}[{index}].{key_field}: "
+                f"expected {expected!r}, got {actual!r}"
+            )
+        entry_messages: list[str] = []
+        _expect_field_targets(entry, targets, enums, entry_messages)
+        messages.extend(
+            f"{context}[{index}].{message}" for message in entry_messages
+        )

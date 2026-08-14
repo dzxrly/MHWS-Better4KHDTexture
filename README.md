@@ -10,6 +10,7 @@ Better 4K HD Texture 是一个面向 Monster Hunter Wilds 的 `user.3` 配置补
 - 将 MPMR LOD 与小物体剔除的参考分辨率固定为 2160p，避免 DLSS 内部分辨率降低时过早切换 LOD。
 - 将普通 meshlet、最低质量 meshlet 和 SpeedTree 的小物体剔除阈值设为 `0.0`。该字段数值越大，剔除越激进。
 - 以增强后的 `PC_Highest` 为唯一模板覆盖全部 12 个 PC usage，只保留各条目的 `_Platform` 与 `_Usage` 身份字段。
+- 同步修改 UI 图形选项映射，使 Mesh、天空/云和小物体剔除相关选项在保存值重新应用后仍保持项目目标。
 - 将 mesh overcommit 路径以及 `_StreamingMeshLimitList` 全部 13 个状态固定到最低 LOD 0。
 - 保留 `_StreamingMeshLimitList` 的质量分组、状态数量及 VRAM 回滞阈值，不改变新版状态机结构。
 - 使用 4096MB mesh streaming 池和 10240MB texture streaming 预算；minimum、OOV、breadth-first 与 VRAM-limit 分辨率均为 1024。
@@ -39,6 +40,8 @@ Better 4K HD Texture 是一个面向 Monster Hunter Wilds 的 `user.3` 配置补
 
 - `natives/STM/System/SystemSetting/GraphicsPreset.user.3`
 - `natives/STM/System/SystemSetting/GraphicsManagerSetting.user.3`
+- `natives/STM/GameDesign/Common/Option/OptionGraphicsData.user.3`
+- `natives/STM/GameDesign/Common/Option/OptionGraphicsPresetData.user.3`
 - `natives/STM/System/SystemSetting/AppStreamingControllerManagerSetting.user.3`
 - `natives/STM/System/SystemSetting/GrassCullingSetting.user.3`
 - `modinfo.ini`
@@ -117,16 +120,16 @@ assets。
 - `utils/repack.py`：访问 repack JSON 的 helper，例如 `root_instance()`、`iter_ref_fields()`、`set_field()`
 - `utils/enums.py`：读取 `data/Enums_Internal.json` 并解析 enum 值
 - `tools/build_data.py`：上传/下载大体积构建数据的 GitHub Release asset 工具
-- `data/natives/STM/System/SystemSetting/*.user.3`：构建使用的源 `user.3`
+- `data/natives/STM/`：按游戏相对路径保存构建使用的源 `user.3`
 - `example/`：示例输出结构
 - `assets/cover.png`：打包时复制到 mod 根目录
 
 ## AI Agent 修改索引
 
 需要调整目标属性或目标数值时，优先修改 `utils/__init__.py`。`utils/patches.py` 和 `utils/verify.py`
-会读取同一份定义，通常不需要同步改两处逻辑。构建源文件位于 `data/natives/STM/System/SystemSetting/`，`utils.build.TASKS`
-只包含本索引列出的 GraphicsManager、GraphicsPreset、AppStreaming 和 GrassCulling。枚举字段必须通过 `data/Enums_Internal.json` 的类型与成员名解析，
-不能根据整数大小推断画质顺序。
+会读取同一份定义，通常不需要同步改两处逻辑。构建源文件按游戏相对路径位于 `data/natives/STM/`，`utils.build.TASKS`
+只包含本索引列出的 GraphicsManager、GraphicsPreset、OptionGraphics、OptionGraphicsPreset、AppStreaming 和 GrassCulling。
+枚举字段必须通过 `data/Enums_Internal.json` 的类型与成员名解析，不能根据整数大小推断画质顺序。
 
 ### `GraphicsManagerSetting.user.3`
 
@@ -400,6 +403,46 @@ GRAPHICS_STREAMING_MESH_LIMIT_TARGETS
 组成带回滞的 mesh streaming 状态表。构建过程保留全部 13 个条目、质量分组及阈值，同时把所有状态的
 mesh/meshlet 最低 LOD 统一为 0，防止任何动态命中结果重新限制到 LOD1/2。
 
+### `OptionGraphicsData.user.3`
+
+源文件：`data/natives/STM/GameDesign/Common/Option/OptionGraphicsData.user.3`
+
+- root class：`OptionGraphicsData`
+- patch：`utils.patches.patch_option_graphics`
+- verify：`utils.verify.verify_option_graphics`
+
+`_MeshQuality._Items` 必须按 HIGHEST、HIGH、STANDARD 保持 3 个 UI 选项；`_Option` 是菜单身份字段，patch 只校验其原始
+身份与顺序，绝不写入。构建只把每一项的实际 `_Value` 设为与 `GRAPHICS_PC_PRESET_TARGETS._MeshQuality` 相同的 `0`。
+
+`_SkyCloudQuality._Items` 必须按 HIGHEST、HIGH、STANDARD、LOW、LOWEST、SIMPLIFIED 保持 6 个 UI 选项；构建保留各项
+`_Option` 与所有非目标字段，只统一以下运行时载荷。该数组的条目没有单独的 `_Value` 包装字段，因此这 4 个字段就是对应
+选项的实际载荷：
+
+- `_MainRaymarchResolution`: Full
+- `_IBLRaymarchResolution`: Full
+- `_IBLRaymarchScale`: 1.0
+- `_IBLPartialDrawFrame`: 4
+
+因此 UI 中保存的 Mesh 或天空/云档位重新应用时，上述字段仍与静态 `GraphicsPreset` 目标一致；其他 UI 载荷仍保持源文件行为。
+
+### `OptionGraphicsPresetData.user.3`
+
+源文件：`data/natives/STM/GameDesign/Common/Option/OptionGraphicsPresetData.user.3`
+
+- root class：`OptionGraphicsPresetData`
+- patch：`utils.patches.patch_option_graphics_preset`
+- verify：`utils.verify.verify_option_graphics_preset`
+
+`_CullingSettings` 必须按 ULTRA、HIGH、STANDARD、LOW、LOWEST 保持 5 个预设档位；该表以 `_Quality` 而非 `_Option` 作为
+身份字段，patch 只校验而不写入。构建保留其他列表，
+并把五档实际剔除载荷统一为：
+
+- `_Value`: HIGHEST，对应运行时 `_MeshCullingSetting`
+- `_SmallObjectCulling`: 0.0，对应运行时 `_MeshletSmallObjectCulling`
+- `_MPMRSmallObjectCullingResolution`: 2160p，对应运行时 `_SmallObjectCullingResolution`
+
+这只固定项目声明保护的剔除字段，不改写总体图形预设中的其他选项索引。
+
 ### `AppStreamingControllerManagerSetting.user.3`
 
 源文件：
@@ -471,14 +514,16 @@ APP_STREAMING_PROTECT_TARGETS
 
 ## 修改与验证不变量
 
-- `utils.build.TASKS` 是构建输入的唯一依据，当前固定为 GraphicsManager、GraphicsPreset、AppStreaming 和 GrassCulling；其他文件不会因为存在于本地而自动打包。
+- `utils.build.TASKS` 是构建输入的唯一依据，当前固定为 GraphicsManager、GraphicsPreset、OptionGraphics、OptionGraphicsPreset、AppStreaming 和 GrassCulling；其他文件不会因为存在于本地而自动打包。
 - patch 与 verify 共用 `utils/__init__.py` 中的目标定义。新增或删除目标字段时，必须确认对应 patch 路径和验证范围仍然一致。
 - enum 目标必须由 `EnumLookup` 解析 `data/Enums_Internal.json` 中的类型与成员，禁止直接依据枚举整数大小推断质量高低。
 - GraphicsPreset 必须按 LOWEST、LOW、STANDARD、HIGH、HIGHEST 顺序包含 5 个 streaming texture setting 条目，且五档实际载荷必须完全命中同一目标。
 - GraphicsPreset 必须按 0、7000、10000、13000、17000MB 顺序包含 5 个 streaming texture limit 条目，保留阈值并统一为 10240MB 预算上限。
 - GraphicsPreset 必须恰好包含预期的 12 个 PC usage；除 `_Platform` 与 `_Usage` 外，其余顶层字段及嵌套引用载荷都必须与增强后的 `PC_Highest` 完全一致。
 - GraphicsPreset 必须包含 13 个 streaming mesh limit 条目，且全部条目的 mesh/meshlet 最低 LOD 都必须为 0；数量不符时构建或验证必须失败。
+- OptionGraphics 必须保持 3 个 Mesh UI 档位和 6 个天空/云 UI 档位的身份与顺序，并让每一档的目标载荷完全一致。
+- OptionGraphicsPreset 必须保持 5 个剔除预设档位的身份与顺序，并让每一档的 Mesh 剔除、meshlet 小物体阈值和参考分辨率完全一致。
 - GraphicsManager 只修改普通 streaming 资源过期帧数，对话专用过期帧数和其他字段保持源文件值。
 - GrassCulling 必须保持 4 个 `_Data` 和 12 个 `_StageData` 条目，并保留原有顺序、stage ID 与 culling mode；数量不符时不得继续打包。
-- 成功构建必须生成四个已验证的 `user.3`、`modinfo.ini` 和 `cover.png`。最终 zip 不得包含 `TASKS` 之外的配置文件。
+- 成功构建必须生成六个已验证的 `user.3`、`modinfo.ini` 和 `cover.png`。最终 zip 不得包含 `TASKS` 之外的配置文件。
 - 修改目标或构建逻辑后必须运行 `python main.py`，并检查 `output/output.log` 中每个文件的变更数量、重建 JSON 与 `Verification passed` 结果。

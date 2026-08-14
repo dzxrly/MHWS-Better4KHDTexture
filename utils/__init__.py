@@ -203,6 +203,60 @@ GRAPHICS_PC_PRESET_TARGETS: FieldTargets = {
     "_IBLPartialDrawFrame": 4,
 }
 
+
+OPTION_GRAPHICS_ROOT_CLASS = "OptionGraphicsData"
+OPTION_GRAPHICS_ITEMS_FIELD = "_Items"
+OPTION_GRAPHICS_MESH_SETTING_FIELD = "_MeshQuality"
+OPTION_GRAPHICS_MESH_OPTION_FIELD = "_Option"
+OPTION_GRAPHICS_MESH_EXPECTED_OPTIONS = (
+    enum_target("app.OptionParamDef.MESH_QUALITY", "HIGHEST"),
+    enum_target("app.OptionParamDef.MESH_QUALITY", "HIGH"),
+    enum_target("app.OptionParamDef.MESH_QUALITY", "STANDARD"),
+)
+OPTION_GRAPHICS_MESH_TARGETS: FieldTargets = {
+    "_Value": GRAPHICS_PC_PRESET_TARGETS["_MeshQuality"],
+}
+OPTION_GRAPHICS_SKY_CLOUD_SETTING_FIELD = "_SkyCloudQuality"
+OPTION_GRAPHICS_SKY_CLOUD_OPTION_FIELD = "_Option"
+OPTION_GRAPHICS_SKY_CLOUD_EXPECTED_OPTIONS = (
+    enum_target("app.OptionParamDef.SKY_CLOUD_QUALITY", "HIGHEST"),
+    enum_target("app.OptionParamDef.SKY_CLOUD_QUALITY", "HIGH"),
+    enum_target("app.OptionParamDef.SKY_CLOUD_QUALITY", "STANDARD"),
+    enum_target("app.OptionParamDef.SKY_CLOUD_QUALITY", "LOW"),
+    enum_target("app.OptionParamDef.SKY_CLOUD_QUALITY", "LOWEST"),
+    enum_target("app.OptionParamDef.SKY_CLOUD_QUALITY", "SIMPLIFIED"),
+)
+OPTION_GRAPHICS_SKY_CLOUD_TARGETS: FieldTargets = {
+    name: GRAPHICS_PC_PRESET_TARGETS[name]
+    for name in (
+        "_MainRaymarchResolution",
+        "_IBLRaymarchResolution",
+        "_IBLRaymarchScale",
+        "_IBLPartialDrawFrame",
+    )
+}
+
+OPTION_GRAPHICS_PRESET_ROOT_CLASS = "OptionGraphicsPresetData"
+OPTION_GRAPHICS_PRESET_CULLING_LIST = "_CullingSettings"
+OPTION_GRAPHICS_PRESET_CULLING_QUALITY_FIELD = "_Quality"
+OPTION_GRAPHICS_PRESET_CULLING_EXPECTED_QUALITIES = (
+    enum_target("app.OptionParamDef.PRESET_QUALITY", "ULTRA"),
+    enum_target("app.OptionParamDef.PRESET_QUALITY", "HIGH"),
+    enum_target("app.OptionParamDef.PRESET_QUALITY", "STANDARD"),
+    enum_target("app.OptionParamDef.PRESET_QUALITY", "LOW"),
+    enum_target("app.OptionParamDef.PRESET_QUALITY", "LOWEST"),
+)
+OPTION_GRAPHICS_PRESET_CULLING_TARGETS: FieldTargets = {
+    "_Value": GRAPHICS_PC_PRESET_TARGETS["_MeshCullingSetting"],
+    "_SmallObjectCulling": GRAPHICS_PC_PRESET_TARGETS[
+        "_MeshletSmallObjectCulling"
+    ],
+    "_MPMRSmallObjectCullingResolution": GRAPHICS_PC_PRESET_TARGETS[
+        "_SmallObjectCullingResolution"
+    ],
+}
+
+
 GRAPHICS_RAY_TRACING_FIELD = "_RayTracing"
 GRAPHICS_PC_RAY_TRACING_TARGETS: FieldTargets = {
     "_Enable": True,
