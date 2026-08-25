@@ -59,11 +59,21 @@ from . import (
     OPTION_GRAPHICS_PRESET_CULLING_QUALITY_FIELD,
     OPTION_GRAPHICS_PRESET_CULLING_TARGETS,
     OPTION_GRAPHICS_PRESET_ROOT_CLASS,
+    OPTION_GRAPHICS_RAY_TRACING_EXPECTED_OPTIONS,
+    OPTION_GRAPHICS_RAY_TRACING_OPTION_FIELD,
+    OPTION_GRAPHICS_RAY_TRACING_SETTING_FIELD,
+    OPTION_GRAPHICS_RAY_TRACING_TARGETS,
     OPTION_GRAPHICS_ROOT_CLASS,
     OPTION_GRAPHICS_SKY_CLOUD_EXPECTED_OPTIONS,
     OPTION_GRAPHICS_SKY_CLOUD_OPTION_FIELD,
     OPTION_GRAPHICS_SKY_CLOUD_SETTING_FIELD,
     OPTION_GRAPHICS_SKY_CLOUD_TARGETS,
+    RAY_TRACING_STAGE_DATA_LIST,
+    RAY_TRACING_STAGE_EXPECTED_STAGES,
+    RAY_TRACING_STAGE_EXPERIMENTAL_FIELD,
+    RAY_TRACING_STAGE_ID_FIELD,
+    RAY_TRACING_STAGE_ROOT_CLASS,
+    RAY_TRACING_STAGE_TARGETS,
     FieldTargets,
     resolve_target_value,
 )
@@ -103,6 +113,42 @@ def patch_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
     return changes
 
 
+def patch_ray_tracing_for_stage(data: JsonDict, enums: EnumLookup) -> list[str]:
+    changes: list[str] = []
+    root = root_instance(data, RAY_TRACING_STAGE_ROOT_CLASS)
+    root_fields = root.get("fields")
+    if not isinstance(root_fields, dict):
+        raise ValueError(f"{RAY_TRACING_STAGE_ROOT_CLASS} root has no fields")
+
+    entries = list(iter_ref_fields(data, root_fields.get(RAY_TRACING_STAGE_DATA_LIST)))
+    if len(entries) != len(RAY_TRACING_STAGE_EXPECTED_STAGES):
+        raise ValueError(
+            f"RayTracingForStage.DataList must contain exactly "
+            f"{len(RAY_TRACING_STAGE_EXPECTED_STAGES)} entries, got {len(entries)}"
+        )
+
+    for index, (entry, expected_stage) in enumerate(
+        zip(entries, RAY_TRACING_STAGE_EXPECTED_STAGES)
+    ):
+        expected = resolve_target_value(expected_stage, enums)
+        actual = entry.get(RAY_TRACING_STAGE_ID_FIELD)
+        if enum_int(actual) != enum_int(expected):
+            raise ValueError(
+                f"RayTracingForStage.DataList[{index}]."
+                f"{RAY_TRACING_STAGE_ID_FIELD}: expected {expected!r}, got {actual!r}"
+            )
+        # _Stage is an identity key. Validate it, but never rewrite it.
+        experimental = fields(data, entry.get(RAY_TRACING_STAGE_EXPERIMENTAL_FIELD))
+        _apply_field_targets(
+            experimental,
+            RAY_TRACING_STAGE_TARGETS,
+            enums,
+            changes,
+            f"RayTracingForStage[{index}:Stage={enum_int(actual)}]",
+        )
+    return changes
+
+
 def patch_option_graphics(data: JsonDict, enums: EnumLookup) -> list[str]:
     changes: list[str] = []
     root = root_instance(data, OPTION_GRAPHICS_ROOT_CLASS)
@@ -135,6 +181,21 @@ def patch_option_graphics(data: JsonDict, enums: EnumLookup) -> list[str]:
         enums,
         changes,
         "OptionGraphics.SkyCloudQuality",
+    )
+
+    ray_tracing_setting = fields(
+        data,
+        root_fields.get(OPTION_GRAPHICS_RAY_TRACING_SETTING_FIELD),
+    )
+    _patch_keyed_exact_target_list(
+        data,
+        ray_tracing_setting.get(OPTION_GRAPHICS_ITEMS_FIELD),
+        OPTION_GRAPHICS_RAY_TRACING_OPTION_FIELD,
+        OPTION_GRAPHICS_RAY_TRACING_EXPECTED_OPTIONS,
+        OPTION_GRAPHICS_RAY_TRACING_TARGETS,
+        enums,
+        changes,
+        "OptionGraphics.RayTracing",
     )
     return changes
 
@@ -602,13 +663,41 @@ def _patch_keyed_target_list(
     changes: list[str],
     context: str,
 ) -> None:
+    _patch_keyed_exact_target_list(
+        data,
+        refs,
+        key_field,
+        expected_keys,
+        tuple(targets for _ in expected_keys),
+        enums,
+        changes,
+        context,
+    )
+
+
+def _patch_keyed_exact_target_list(
+    data: JsonDict,
+    refs: Any,
+    key_field: str,
+    expected_keys: tuple[object, ...],
+    targets: tuple[FieldTargets, ...],
+    enums: EnumLookup,
+    changes: list[str],
+    context: str,
+) -> None:
+    if len(targets) != len(expected_keys):
+        raise ValueError(
+            f"{context} defines {len(expected_keys)} keys but {len(targets)} targets"
+        )
     entries = list(iter_ref_fields(data, refs))
     if len(entries) != len(expected_keys):
         raise ValueError(
             f"{context} must contain exactly {len(expected_keys)} entries, "
             f"got {len(entries)}"
         )
-    for index, (entry, expected_key) in enumerate(zip(entries, expected_keys)):
+    for index, (entry, expected_key, entry_targets) in enumerate(
+        zip(entries, expected_keys, targets)
+    ):
         expected = resolve_target_value(expected_key, enums)
         actual = entry.get(key_field)
         if enum_int(actual) != enum_int(expected):
@@ -616,10 +705,10 @@ def _patch_keyed_target_list(
                 f"{context}[{index}].{key_field}: "
                 f"expected {expected!r}, got {actual!r}"
             )
-        # The key is a menu/preset identity field. Validate it, but never rewrite it.
+        # The key controls the menu identity/text. Validate it, but never rewrite it.
         _apply_field_targets(
             entry,
-            targets,
+            entry_targets,
             enums,
             changes,
             f"{context}[{index}:Key={enum_int(actual)}]",

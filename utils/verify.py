@@ -55,11 +55,21 @@ from . import (
     OPTION_GRAPHICS_PRESET_CULLING_QUALITY_FIELD,
     OPTION_GRAPHICS_PRESET_CULLING_TARGETS,
     OPTION_GRAPHICS_PRESET_ROOT_CLASS,
+    OPTION_GRAPHICS_RAY_TRACING_EXPECTED_OPTIONS,
+    OPTION_GRAPHICS_RAY_TRACING_OPTION_FIELD,
+    OPTION_GRAPHICS_RAY_TRACING_SETTING_FIELD,
+    OPTION_GRAPHICS_RAY_TRACING_TARGETS,
     OPTION_GRAPHICS_ROOT_CLASS,
     OPTION_GRAPHICS_SKY_CLOUD_EXPECTED_OPTIONS,
     OPTION_GRAPHICS_SKY_CLOUD_OPTION_FIELD,
     OPTION_GRAPHICS_SKY_CLOUD_SETTING_FIELD,
     OPTION_GRAPHICS_SKY_CLOUD_TARGETS,
+    RAY_TRACING_STAGE_DATA_LIST,
+    RAY_TRACING_STAGE_EXPECTED_STAGES,
+    RAY_TRACING_STAGE_EXPERIMENTAL_FIELD,
+    RAY_TRACING_STAGE_ID_FIELD,
+    RAY_TRACING_STAGE_ROOT_CLASS,
+    RAY_TRACING_STAGE_TARGETS,
     FieldTargets,
     resolve_target_value,
 )
@@ -221,6 +231,43 @@ def verify_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
     return messages
 
 
+def verify_ray_tracing_for_stage(data: JsonDict, enums: EnumLookup) -> list[str]:
+    root = root_instance(data, RAY_TRACING_STAGE_ROOT_CLASS)
+    root_fields = root["fields"]
+    messages: list[str] = []
+    entries = list(iter_ref_fields(data, root_fields[RAY_TRACING_STAGE_DATA_LIST]))
+    if len(entries) != len(RAY_TRACING_STAGE_EXPECTED_STAGES):
+        messages.append(
+            f"RayTracingForStage.DataList: expected exactly "
+            f"{len(RAY_TRACING_STAGE_EXPECTED_STAGES)} entries, got {len(entries)}"
+        )
+        return messages
+
+    for index, (entry, expected_stage) in enumerate(
+        zip(entries, RAY_TRACING_STAGE_EXPECTED_STAGES)
+    ):
+        expected = resolve_target_value(expected_stage, enums)
+        actual = entry.get(RAY_TRACING_STAGE_ID_FIELD)
+        if enum_int(actual) != enum_int(expected):
+            messages.append(
+                f"RayTracingForStage.DataList[{index}]."
+                f"{RAY_TRACING_STAGE_ID_FIELD}: expected {expected!r}, got {actual!r}"
+            )
+        experimental = fields(data, entry[RAY_TRACING_STAGE_EXPERIMENTAL_FIELD])
+        entry_messages: list[str] = []
+        _expect_field_targets(
+            experimental,
+            RAY_TRACING_STAGE_TARGETS,
+            enums,
+            entry_messages,
+        )
+        messages.extend(
+            f"RayTracingForStage.DataList[{index}].{message}"
+            for message in entry_messages
+        )
+    return messages
+
+
 def verify_option_graphics(data: JsonDict, enums: EnumLookup) -> list[str]:
     root = root_instance(data, OPTION_GRAPHICS_ROOT_CLASS)
     root_fields = root["fields"]
@@ -251,6 +298,21 @@ def verify_option_graphics(data: JsonDict, enums: EnumLookup) -> list[str]:
         enums,
         messages,
         "OptionGraphics.SkyCloudQuality",
+    )
+
+    ray_tracing_setting = fields(
+        data,
+        root_fields[OPTION_GRAPHICS_RAY_TRACING_SETTING_FIELD],
+    )
+    _expect_keyed_exact_target_list(
+        data,
+        ray_tracing_setting[OPTION_GRAPHICS_ITEMS_FIELD],
+        OPTION_GRAPHICS_RAY_TRACING_OPTION_FIELD,
+        OPTION_GRAPHICS_RAY_TRACING_EXPECTED_OPTIONS,
+        OPTION_GRAPHICS_RAY_TRACING_TARGETS,
+        enums,
+        messages,
+        "OptionGraphics.RayTracing",
     )
     return messages
 
@@ -525,6 +587,33 @@ def _expect_keyed_target_list(
     messages: list[str],
     context: str,
 ) -> None:
+    _expect_keyed_exact_target_list(
+        data,
+        refs,
+        key_field,
+        expected_keys,
+        tuple(targets for _ in expected_keys),
+        enums,
+        messages,
+        context,
+    )
+
+
+def _expect_keyed_exact_target_list(
+    data: JsonDict,
+    refs: object,
+    key_field: str,
+    expected_keys: tuple[object, ...],
+    targets: tuple[FieldTargets, ...],
+    enums: EnumLookup,
+    messages: list[str],
+    context: str,
+) -> None:
+    if len(targets) != len(expected_keys):
+        messages.append(
+            f"{context}: expected {len(expected_keys)} targets, got {len(targets)}"
+        )
+        return
     entries = list(iter_ref_fields(data, refs))
     if len(entries) != len(expected_keys):
         messages.append(
@@ -532,7 +621,9 @@ def _expect_keyed_target_list(
             f"got {len(entries)}"
         )
         return
-    for index, (entry, expected_key) in enumerate(zip(entries, expected_keys)):
+    for index, (entry, expected_key, entry_targets) in enumerate(
+        zip(entries, expected_keys, targets)
+    ):
         expected = resolve_target_value(expected_key, enums)
         actual = entry.get(key_field)
         if enum_int(actual) != enum_int(expected):
@@ -541,7 +632,7 @@ def _expect_keyed_target_list(
                 f"expected {expected!r}, got {actual!r}"
             )
         entry_messages: list[str] = []
-        _expect_field_targets(entry, targets, enums, entry_messages)
+        _expect_field_targets(entry, entry_targets, enums, entry_messages)
         messages.extend(
             f"{context}[{index}].{message}" for message in entry_messages
         )

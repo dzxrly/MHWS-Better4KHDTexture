@@ -236,6 +236,31 @@ OPTION_GRAPHICS_SKY_CLOUD_TARGETS: FieldTargets = {
     )
 }
 
+OPTION_GRAPHICS_RAY_TRACING_SETTING_FIELD = "_RayTracing"
+OPTION_GRAPHICS_RAY_TRACING_OPTION_FIELD = "_Option"
+OPTION_GRAPHICS_RAY_TRACING_EXPECTED_OPTIONS = (
+    enum_target("app.OptionParamDef.RAYTRACING_SETTINGS", "HIGH"),
+    enum_target("app.OptionParamDef.RAYTRACING_SETTINGS", "STANDARD"),
+    enum_target("app.OptionParamDef.RAYTRACING_SETTINGS", "LOW"),
+    enum_target("app.OptionParamDef.RAYTRACING_SETTINGS", "OFF"),
+)
+OPTION_GRAPHICS_RAY_TRACING_HIGH_TARGETS: FieldTargets = {
+    "_Enable": True,
+    "_Quality": enum_target("via.render.RenderConfig.Quality", "HIGH"),
+    "_RayTracingResRatio": 1.0,
+}
+OPTION_GRAPHICS_RAY_TRACING_OFF_TARGETS: FieldTargets = {
+    "_Enable": False,
+    "_Quality": enum_target("via.render.RenderConfig.Quality", "NONE"),
+    "_RayTracingResRatio": 1.0,
+}
+OPTION_GRAPHICS_RAY_TRACING_TARGETS: tuple[FieldTargets, ...] = (
+    OPTION_GRAPHICS_RAY_TRACING_HIGH_TARGETS,
+    OPTION_GRAPHICS_RAY_TRACING_HIGH_TARGETS,
+    OPTION_GRAPHICS_RAY_TRACING_HIGH_TARGETS,
+    OPTION_GRAPHICS_RAY_TRACING_OFF_TARGETS,
+)
+
 OPTION_GRAPHICS_PRESET_ROOT_CLASS = "OptionGraphicsPresetData"
 OPTION_GRAPHICS_PRESET_CULLING_LIST = "_CullingSettings"
 OPTION_GRAPHICS_PRESET_CULLING_QUALITY_FIELD = "_Quality"
@@ -260,13 +285,14 @@ OPTION_GRAPHICS_PRESET_CULLING_TARGETS: FieldTargets = {
 GRAPHICS_RAY_TRACING_FIELD = "_RayTracing"
 GRAPHICS_PC_RAY_TRACING_TARGETS: FieldTargets = {
     "_Enable": True,
-    "_Quality": 1,
+    "_Quality": enum_target("via.render.RenderConfig.Quality", "HIGH"),
     "_GIEnable": True,
+    "_ReflectionEnable": True,
     "_ShadowEnable": True,
     "_TransparentEnable": True,
     "_EnableLod": True,
     "_EnableOverwriteLod": True,
-    "_OverwriteLod": 0,
+    "_OverwriteLod": enum_target("via.render.RayTracingLod", "LOD_0"),
     "_FoliageRayTracingLodOffset": 0,
 }
 
@@ -283,6 +309,31 @@ GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_RANGE_TARGETS: FieldTargets = {
     "_DiffuseRayLength": 150.0,
     "_SpecularRayLength": 300.0,
     "_FrustumFarPlane": 300.0,
+}
+
+RAY_TRACING_STAGE_ROOT_CLASS = "RayTracingForStageData"
+RAY_TRACING_STAGE_DATA_LIST = "_DataList"
+RAY_TRACING_STAGE_ID_FIELD = "_Stage"
+RAY_TRACING_STAGE_EXPERIMENTAL_FIELD = "_ExperimentalRayTrace"
+RAY_TRACING_STAGE_EXPECTED_STAGES = (
+    enum_target("app.FieldDef.STAGE_Fixed", "ST101"),
+    enum_target("app.FieldDef.STAGE_Fixed", "ST102"),
+    enum_target("app.FieldDef.STAGE_Fixed", "ST103"),
+    enum_target("app.FieldDef.STAGE_Fixed", "ST104"),
+    enum_target("app.FieldDef.STAGE_Fixed", "ST105"),
+    enum_target("app.FieldDef.STAGE_Fixed", "ST402"),
+    enum_target("app.FieldDef.STAGE_Fixed", "ST403"),
+    enum_target("app.FieldDef.STAGE_Fixed", "ST502"),
+    enum_target("app.FieldDef.STAGE_Fixed", "ST405"),
+    enum_target("app.FieldDef.STAGE_Fixed", "ST204"),
+    enum_target("app.FieldDef.STAGE_Fixed", "ST404"),
+)
+RAY_TRACING_STAGE_TARGETS: FieldTargets = {
+    "_DiffuseRayLength": 150.0,
+    "_SpecularRayLength": 300.0,
+    "_FrustumFarPlane": 300.0,
+    "_UseRayTracingAO": True,
+    "_UseSolidAngleCulling": False,
 }
 
 GRAPHICS_STREAMING_MESH_LIMIT_LIST = "_StreamingMeshLimitList"

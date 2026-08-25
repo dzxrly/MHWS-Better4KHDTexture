@@ -10,7 +10,7 @@ Better 4K HD Texture 是一个面向 Monster Hunter Wilds 的 `user.3` 配置补
 - 将 MPMR LOD 与小物体剔除的参考分辨率固定为 2160p，避免 DLSS 内部分辨率降低时过早切换 LOD。
 - 将普通 meshlet、最低质量 meshlet 和 SpeedTree 的小物体剔除阈值设为 `0.0`。该字段数值越大，剔除越激进。
 - 以增强后的 `PC_Highest` 为唯一模板覆盖全部 12 个 PC usage，只保留各条目的 `_Platform` 与 `_Usage` 身份字段。
-- 同步修改 UI 图形选项映射，使 Mesh、天空/云和小物体剔除相关选项在保存值重新应用后仍保持项目目标。
+- 同步修改 UI 图形选项映射，使 Mesh、天空/云、光追和小物体剔除相关选项在保存值重新应用后仍保持项目目标。
 - 将 mesh overcommit 路径以及 `_StreamingMeshLimitList` 全部 13 个状态固定到最低 LOD 0。
 - 保留 `_StreamingMeshLimitList` 的质量分组、状态数量及 VRAM 回滞阈值，不改变新版状态机结构。
 - 使用 4096MB mesh streaming 池和 10240MB texture streaming 预算；minimum、OOV、breadth-first 与 VRAM-limit 分辨率均为 1024。
@@ -40,6 +40,7 @@ Better 4K HD Texture 是一个面向 Monster Hunter Wilds 的 `user.3` 配置补
 
 - `natives/STM/System/SystemSetting/GraphicsPreset.user.3`
 - `natives/STM/System/SystemSetting/GraphicsManagerSetting.user.3`
+- `natives/STM/System/SystemSetting/RayTracingForStageData.user.3`
 - `natives/STM/GameDesign/Common/Option/OptionGraphicsData.user.3`
 - `natives/STM/GameDesign/Common/Option/OptionGraphicsPresetData.user.3`
 - `natives/STM/System/SystemSetting/AppStreamingControllerManagerSetting.user.3`
@@ -112,7 +113,7 @@ assets。
 - `main.py`：构建入口，调用 `utils.build.main()`
 - `utils/build.py`：构建流程、输出清理、patch、verify、打包调度
 - `utils/__init__.py`：集中维护目标属性和目标数值
-- `utils/patches.py`：读取 `utils/__init__.py` 中的目标定义，修改构建任务中的四个 `user.3`；Grass 文件由
+- `utils/patches.py`：读取 `utils/__init__.py` 中的目标定义，修改构建任务中的七个 `user.3`；Grass 文件由
   `patch_grass_culling()` 处理
 - `utils/verify.py`：读取同一份目标定义，构建后校验字段值
 - `utils/package.py`：写入 `modinfo.ini`、复制 `cover.png`、生成 zip
@@ -128,7 +129,7 @@ assets。
 
 需要调整目标属性或目标数值时，优先修改 `utils/__init__.py`。`utils/patches.py` 和 `utils/verify.py`
 会读取同一份定义，通常不需要同步改两处逻辑。构建源文件按游戏相对路径位于 `data/natives/STM/`，`utils.build.TASKS`
-只包含本索引列出的 GraphicsManager、GraphicsPreset、OptionGraphics、OptionGraphicsPreset、AppStreaming 和 GrassCulling。
+只包含本索引列出的 GraphicsManager、GraphicsPreset、RayTracingForStage、OptionGraphics、OptionGraphicsPreset、AppStreaming 和 GrassCulling。
 枚举字段必须通过 `data/Enums_Internal.json` 的类型与成员名解析，不能根据整数大小推断画质顺序。
 
 ### `GraphicsManagerSetting.user.3`
@@ -364,13 +365,14 @@ GRAPHICS_PC_PRESET_TARGETS
 GRAPHICS_PC_RAY_TRACING_TARGETS
 
 - _Enable: true
-- _Quality: 1
+- _Quality: HIGH（3）
 - _GIEnable: true
+- _ReflectionEnable: true
 - _ShadowEnable: true
 - _TransparentEnable: true
 - _EnableLod: true
 - _EnableOverwriteLod: true
-- _OverwriteLod: 0
+- _OverwriteLod: LOD_0（0）
 - _FoliageRayTracingLodOffset: 0
 
 GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_TARGETS
@@ -388,7 +390,13 @@ GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_RANGE_TARGETS
 - _FrustumFarPlane: 300.0
 
 上述普通与实验性光追目标（包括射线长度和 frustum 范围）先应用到 `PC_Highest` 模板，再随完整模板覆盖到全部
-12 个 PC usage，使普通 RT 几何与植被统一使用 LOD0，并消除 usage 切换造成的预设差异。
+12 个 PC usage，使普通 RT 几何与植被统一使用 LOD0，并消除 usage 切换造成的预设差异。`_Quality` 和 `_OverwriteLod`
+分别通过 `via.render.RenderConfig.Quality.HIGH` 与 `via.render.RayTracingLod.LOD_0` 解析；光追菜单没有 HIGHEST 档，官方
+最高档身份是 HIGH，因此不根据通用 Quality 枚举中的整数大小擅自选择 HIGHEST。
+
+当前 schema 没有单独名为 Global Ray Tracing 的可序列化总开关；全部 12 个 PC usage 的 `_Enable` 以及 GI、反射、阴影和
+透明光追子开关构成全局预设覆盖。`RayTracingForStageData.user.3` 负责 11 个特定 stage 的实验性光追覆盖，它不替代这些
+总开关，而是在第二阶段加入 `utils.build.TASKS`，用于防止进入对应 stage 后回落到较短射线范围或重新启用实体角剔除。
 
 GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_ENTRY_COUNT
 
@@ -402,6 +410,29 @@ GRAPHICS_STREAMING_MESH_LIMIT_TARGETS
 新版 `_StreamingMeshLimitList` 使用 `_MeshQuality` 与 `_DownVramThresholdMB` / `_UpVramThresholdMB`
 组成带回滞的 mesh streaming 状态表。构建过程保留全部 13 个条目、质量分组及阈值，同时把所有状态的
 mesh/meshlet 最低 LOD 统一为 0，防止任何动态命中结果重新限制到 LOD1/2。
+
+### `RayTracingForStageData.user.3`
+
+源文件：`data/natives/STM/System/SystemSetting/RayTracingForStageData.user.3`
+
+- root class：`RayTracingForStageData`
+- patch：`utils.patches.patch_ray_tracing_for_stage`
+- verify：`utils.verify.verify_ray_tracing_for_stage`
+
+`_DataList` 必须恰好按 ST101、ST102、ST103、ST104、ST105、ST402、ST403、ST502、ST405、ST204、ST404 的原始顺序包含
+11 个条目。`_Stage` 是 stage 身份键，patch 只校验其枚举值与顺序，绝不写入；源文件中不存在的 ST201、ST202、ST203、
+ST401 和 ST503 不会被推测或补造。每个条目的 `_ExperimentalRayTrace` 只统一以下五项：
+
+- `_DiffuseRayLength`: 150.0
+- `_SpecularRayLength`: 300.0
+- `_FrustumFarPlane`: 300.0
+- `_UseRayTracingAO`: true
+- `_UseSolidAngleCulling`: false
+
+ST101 的 specular ray 与 frustum 原本已为 300，因此预期修改 3 项；其余 10 个 stage 各修改 5 项，合计严格为 53 项。
+`_FrustumMaxExpand`、`_SolidAngleCullingThreshold`、`_IBLBoost`、`_TransparentMultiplier`、所有降噪器字段及其他非目标字段均
+保持源文件值。普通光追的 `_EnableLod`、`_EnableOverwriteLod`、`_OverwriteLod` 与 `_FoliageRayTracingLodOffset` 不存在于
+该 stage 数据结构中，因此仍由 `GraphicsPreset.user.3` 的 12 个 PC usage 统一控制。
 
 ### `OptionGraphicsData.user.3`
 
@@ -423,7 +454,15 @@ mesh/meshlet 最低 LOD 统一为 0，防止任何动态命中结果重新限制
 - `_IBLRaymarchScale`: 1.0
 - `_IBLPartialDrawFrame`: 4
 
-因此 UI 中保存的 Mesh 或天空/云档位重新应用时，上述字段仍与静态 `GraphicsPreset` 目标一致；其他 UI 载荷仍保持源文件行为。
+`_RayTracing._Items` 必须按 HIGH、STANDARD、LOW、OFF 保持 4 个 UI 选项。`_Option` 与 Mesh 菜单一样只用于校验身份和
+顺序，patch 绝不写入该字段。HIGH、STANDARD、LOW 三个非 OFF 条目的其余全部载荷统一为：
+
+- `_Enable`: true
+- `_Quality`: HIGH（3）
+- `_RayTracingResRatio`: 1.0
+
+OFF 条目则固定为 `_Enable: false`、`_Quality: NONE`、`_RayTracingResRatio: 1.0`，确保关闭语义不被破坏。因此 UI 中保存的
+Mesh、天空/云或任一非 OFF 光追档位重新应用时，目标字段仍与静态 `GraphicsPreset` 一致；其他 UI 载荷保持源文件行为。
 
 ### `OptionGraphicsPresetData.user.3`
 
@@ -514,16 +553,18 @@ APP_STREAMING_PROTECT_TARGETS
 
 ## 修改与验证不变量
 
-- `utils.build.TASKS` 是构建输入的唯一依据，当前固定为 GraphicsManager、GraphicsPreset、OptionGraphics、OptionGraphicsPreset、AppStreaming 和 GrassCulling；其他文件不会因为存在于本地而自动打包。
+- `utils.build.TASKS` 是构建输入的唯一依据，当前固定为 GraphicsManager、GraphicsPreset、RayTracingForStage、OptionGraphics、OptionGraphicsPreset、AppStreaming 和 GrassCulling；其他文件不会因为存在于本地而自动打包。
 - patch 与 verify 共用 `utils/__init__.py` 中的目标定义。新增或删除目标字段时，必须确认对应 patch 路径和验证范围仍然一致。
 - enum 目标必须由 `EnumLookup` 解析 `data/Enums_Internal.json` 中的类型与成员，禁止直接依据枚举整数大小推断质量高低。
 - GraphicsPreset 必须按 LOWEST、LOW、STANDARD、HIGH、HIGHEST 顺序包含 5 个 streaming texture setting 条目，且五档实际载荷必须完全命中同一目标。
 - GraphicsPreset 必须按 0、7000、10000、13000、17000MB 顺序包含 5 个 streaming texture limit 条目，保留阈值并统一为 10240MB 预算上限。
 - GraphicsPreset 必须恰好包含预期的 12 个 PC usage；除 `_Platform` 与 `_Usage` 外，其余顶层字段及嵌套引用载荷都必须与增强后的 `PC_Highest` 完全一致。
 - GraphicsPreset 必须包含 13 个 streaming mesh limit 条目，且全部条目的 mesh/meshlet 最低 LOD 都必须为 0；数量不符时构建或验证必须失败。
-- OptionGraphics 必须保持 3 个 Mesh UI 档位和 6 个天空/云 UI 档位的身份与顺序，并让每一档的目标载荷完全一致。
+- RayTracingForStage 必须保持上述 11 个 stage 的数量、身份与原始顺序，只修改每项嵌套实验性光追块中的五个目标字段；`_Stage` 与降噪器字段不得被写入。
+- OptionGraphics 必须保持 3 个 Mesh、6 个天空/云以及 HIGH、STANDARD、LOW、OFF 共 4 个光追 UI 档位的 `_Option`
+  身份与顺序；所有非 OFF 光追档统一使用 HIGH/全分辨率载荷，OFF 必须保持关闭且任何身份键都不得被 patch 写入。
 - OptionGraphicsPreset 必须保持 5 个剔除预设档位的身份与顺序，并让每一档的 Mesh 剔除、meshlet 小物体阈值和参考分辨率完全一致。
 - GraphicsManager 只修改普通 streaming 资源过期帧数，对话专用过期帧数和其他字段保持源文件值。
 - GrassCulling 必须保持 4 个 `_Data` 和 12 个 `_StageData` 条目，并保留原有顺序、stage ID 与 culling mode；数量不符时不得继续打包。
-- 成功构建必须生成六个已验证的 `user.3`、`modinfo.ini` 和 `cover.png`。最终 zip 不得包含 `TASKS` 之外的配置文件。
+- 成功构建必须生成七个已验证的 `user.3`、`modinfo.ini` 和 `cover.png`，最终 zip 恰好包含 9 个成员且不得含有 `TASKS` 之外的配置文件。
 - 修改目标或构建逻辑后必须运行 `python main.py`，并检查 `output/output.log` 中每个文件的变更数量、重建 JSON 与 `Verification passed` 结果。
