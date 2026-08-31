@@ -44,7 +44,6 @@ from . import (
     GRASS_CULLING_ROOT_CLASS,
     GRASS_CULLING_ROOT_TARGETS,
     GRASS_CULLING_STAGE_DATA_LIST,
-    GRASS_CULLING_STAGE_DATA_TARGETS,
     OPTION_GRAPHICS_ITEMS_FIELD,
     OPTION_GRAPHICS_MESH_EXPECTED_OPTIONS,
     OPTION_GRAPHICS_MESH_OPTION_FIELD,
@@ -74,6 +73,7 @@ from . import (
     resolve_target_value,
 )
 from .enums import EnumLookup, enum_int
+from .grass import match_grass_stage_entries
 from .repack import JsonDict, fields, instance, iter_ref_fields, root_instance
 
 
@@ -390,14 +390,22 @@ def verify_grass_culling(data: JsonDict, enums: EnumLookup) -> list[str]:
         messages,
         "GrassCulling.Data",
     )
-    _expect_exact_target_list(
-        data,
-        root_fields[GRASS_CULLING_STAGE_DATA_LIST],
-        GRASS_CULLING_STAGE_DATA_TARGETS,
-        enums,
-        messages,
-        "GrassCulling.StageData",
+    stage_entries = list(
+        iter_ref_fields(data, root_fields[GRASS_CULLING_STAGE_DATA_LIST])
     )
+    try:
+        matches = match_grass_stage_entries(stage_entries, enums)
+    except ValueError as exc:
+        messages.append(str(exc))
+        return messages
+    for index, stage, culling_mode, entry, targets in matches:
+        entry_messages: list[str] = []
+        _expect_field_targets(entry, targets, enums, entry_messages)
+        messages.extend(
+            f"GrassCulling.StageData[{index}:Stage={stage},Mode={culling_mode}]."
+            f"{message}"
+            for message in entry_messages
+        )
     return messages
 
 

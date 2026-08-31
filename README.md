@@ -57,6 +57,9 @@ python tools/build_data.py download
 python main.py
 ```
 
+本项目要求 `PyREUser3>=0.8.0`：可读 JSON 显示游戏运行时使用的有符号 Fixed ID，repack JSON 则保留稳定的无符号位模式，
+供构建逻辑按枚举身份安全匹配与回封。
+
 构建完成后会生成：
 
 - `output/Better4KHDTexture_<version>.zip`
@@ -548,8 +551,8 @@ APP_STREAMING_PROTECT_TARGETS
 - 4 个 `_Data` 与 12 个 `_StageData` 的 `_RangeStart`、`_RangeAnimation` 均为原值的 1.5 倍
 - 所有上述条目的 `_GlobalDensity` 至少为 1.0，`_DensityCullingFar` 至少为 800.0
 
-目标列表在 `GRASS_CULLING_DATA_TARGETS` 与 `GRASS_CULLING_STAGE_DATA_TARGETS` 中按原文件顺序显式列出。patch 与 verify 都要求条目数量精确匹配，
-以防游戏更新后静默错改 stage ID 或 culling mode。
+普通 `_Data` 目标在 `GRASS_CULLING_DATA_TARGETS` 中按原文件顺序显式列出。`_StageData` 则由 `GRASS_CULLING_STAGE_DATA_TARGETS` 按
+`(app.FieldDef.STAGE_Fixed, _CullingMode)` 身份映射，patch 与 verify 不依赖数组位置，并会拒绝重复、缺失或意外身份，防止游戏更新或条目重排后把参数写到错误关卡。
 
 ## 修改与验证不变量
 
@@ -565,6 +568,6 @@ APP_STREAMING_PROTECT_TARGETS
   身份与顺序；所有非 OFF 光追档统一使用 HIGH/全分辨率载荷，OFF 必须保持关闭且任何身份键都不得被 patch 写入。
 - OptionGraphicsPreset 必须保持 5 个剔除预设档位的身份与顺序，并让每一档的 Mesh 剔除、meshlet 小物体阈值和参考分辨率完全一致。
 - GraphicsManager 只修改普通 streaming 资源过期帧数，对话专用过期帧数和其他字段保持源文件值。
-- GrassCulling 必须保持 4 个 `_Data` 和 12 个 `_StageData` 条目，并保留原有顺序、stage ID 与 culling mode；数量不符时不得继续打包。
+- GrassCulling 必须保持 4 个 `_Data` 和 12 个 `_StageData` 条目；构建保留原有顺序、stage ID 与 culling mode，但 `_StageData` 的写入与验证必须以 `(Fixed stage ID, culling mode)` 身份为准。身份重复、缺失或不在目标集合中时不得继续打包。
 - 成功构建必须生成七个已验证的 `user.3`、`modinfo.ini` 和 `cover.png`，最终 zip 恰好包含 9 个成员且不得含有 `TASKS` 之外的配置文件。
 - 修改目标或构建逻辑后必须运行 `python main.py`，并检查 `output/output.log` 中每个文件的变更数量、重建 JSON 与 `Verification passed` 结果。

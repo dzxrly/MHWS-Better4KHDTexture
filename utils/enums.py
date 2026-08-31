@@ -66,3 +66,9 @@ def enum_int(value: Any) -> int | None:
             return None
     return None
 
+
+def enum_u32(value: Any) -> int | None:
+    """Return the 32-bit identity shared by signed and unsigned Fixed labels."""
+
+    numeric = enum_int(value)
+    return None if numeric is None else numeric & 0xFFFFFFFF

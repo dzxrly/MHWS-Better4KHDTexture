@@ -388,6 +388,9 @@ APP_STREAMING_PROTECT_TARGETS: dict[str, list[FieldTargets]] = {
 GRASS_CULLING_ROOT_CLASS = "GrassCullingSetting"
 GRASS_CULLING_DATA_LIST = "_Data"
 GRASS_CULLING_STAGE_DATA_LIST = "_StageData"
+GRASS_CULLING_STAGE_ID_FIELD = "_StageID_Fixed"
+GRASS_CULLING_MODE_FIELD = "_CullingMode"
+GRASS_CULLING_STAGE_ENUM = "app.FieldDef.STAGE_Fixed"
 GRASS_CULLING_ROOT_TARGETS: FieldTargets = {
     "_EnableDensityCulling": False,
     "_InstanceNum": 120000,
@@ -409,17 +412,26 @@ GRASS_CULLING_DATA_TARGETS: list[FieldTargets] = [
     grass_culling_target(45.0, 30.0),
     grass_culling_target(45.0, 30.0),
 ]
-GRASS_CULLING_STAGE_DATA_TARGETS: list[FieldTargets] = [
-    grass_culling_target(135.0, 30.0),
-    grass_culling_target(45.0, 30.0),
-    grass_culling_target(30.0, 15.0),
-    grass_culling_target(45.0, 30.0),
-    grass_culling_target(45.0, 45.0),
-    grass_culling_target(37.5, 30.0),
-    grass_culling_target(30.0, 22.5),
-    grass_culling_target(45.0, 30.0),
-    grass_culling_target(135.0, 30.0),
-    grass_culling_target(45.0, 30.0),
-    grass_culling_target(30.0, 15.0),
-    grass_culling_target(45.0, 30.0),
-]
+
+
+GrassCullingStageKey: TypeAlias = tuple[EnumTarget, int]
+
+
+def grass_culling_stage_key(stage: str, culling_mode: int) -> GrassCullingStageKey:
+    return (enum_target(GRASS_CULLING_STAGE_ENUM, stage), culling_mode)
+
+
+GRASS_CULLING_STAGE_DATA_TARGETS: dict[GrassCullingStageKey, FieldTargets] = {
+    grass_culling_stage_key("ST101", 6601): grass_culling_target(135.0, 30.0),
+    grass_culling_stage_key("ST101", 20827): grass_culling_target(45.0, 30.0),
+    grass_culling_stage_key("ST101", 8922): grass_culling_target(30.0, 15.0),
+    grass_culling_stage_key("ST101", 24229): grass_culling_target(45.0, 30.0),
+    grass_culling_stage_key("ST102", 6601): grass_culling_target(45.0, 45.0),
+    grass_culling_stage_key("ST102", 20827): grass_culling_target(37.5, 30.0),
+    grass_culling_stage_key("ST102", 8922): grass_culling_target(30.0, 22.5),
+    grass_culling_stage_key("ST102", 24229): grass_culling_target(45.0, 30.0),
+    grass_culling_stage_key("ST103", 6601): grass_culling_target(135.0, 30.0),
+    grass_culling_stage_key("ST103", 20827): grass_culling_target(45.0, 30.0),
+    grass_culling_stage_key("ST103", 8922): grass_culling_target(30.0, 15.0),
+    grass_culling_stage_key("ST103", 24229): grass_culling_target(45.0, 30.0),
+}

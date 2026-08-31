@@ -48,7 +48,6 @@ from . import (
     GRASS_CULLING_ROOT_CLASS,
     GRASS_CULLING_ROOT_TARGETS,
     GRASS_CULLING_STAGE_DATA_LIST,
-    GRASS_CULLING_STAGE_DATA_TARGETS,
     OPTION_GRAPHICS_ITEMS_FIELD,
     OPTION_GRAPHICS_MESH_EXPECTED_OPTIONS,
     OPTION_GRAPHICS_MESH_OPTION_FIELD,
@@ -78,6 +77,7 @@ from . import (
     resolve_target_value,
 )
 from .enums import EnumLookup, enum_int
+from .grass import match_grass_stage_entries
 from .repack import JsonDict, fields, instance, iter_ref_fields, root_instance, set_field
 
 
@@ -265,6 +265,10 @@ def patch_grass_culling(data: JsonDict, enums: EnumLookup) -> list[str]:
     root_fields = root.get("fields")
     if not isinstance(root_fields, dict):
         raise ValueError(f"{GRASS_CULLING_ROOT_CLASS} root has no fields")
+    stage_entries = list(
+        iter_ref_fields(data, root_fields.get(GRASS_CULLING_STAGE_DATA_LIST))
+    )
+    stage_matches = match_grass_stage_entries(stage_entries, enums)
 
     _apply_field_targets(
         root_fields,
@@ -281,14 +285,14 @@ def patch_grass_culling(data: JsonDict, enums: EnumLookup) -> list[str]:
         changes,
         "GrassCulling.Data",
     )
-    _patch_exact_target_list(
-        data,
-        root_fields.get(GRASS_CULLING_STAGE_DATA_LIST),
-        GRASS_CULLING_STAGE_DATA_TARGETS,
-        enums,
-        changes,
-        "GrassCulling.StageData",
-    )
+    for index, stage, culling_mode, entry, targets in stage_matches:
+        _apply_field_targets(
+            entry,
+            targets,
+            enums,
+            changes,
+            f"GrassCulling.StageData[{index}:Stage={stage},Mode={culling_mode}]",
+        )
     return changes
 
 
