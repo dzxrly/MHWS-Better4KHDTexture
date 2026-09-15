@@ -137,7 +137,16 @@ GRAPHICS_PC_PRESET_TARGETS: FieldTargets = {
     "_SamplerQuality": enum_target("via.render.SamplerQuality", "Anisotropic16"),
     "_SecondarySamplerQuality": enum_target("via.render.SamplerQuality", "Anisotropic16"),
     "_ShadowQuality": 3,
+    "_Fog_Enable": False,
+    "_VolumetricFogControl_Enable": False,
     "_VolumetricFogControl_TextureSize": 1,
+    "_FilmGrain_Enable": False,
+    "_LensFlare_Enable": False,
+    "_GodRay_Enable": False,
+    "_LensDistortionSetting": enum_target(
+        "via.render.RenderConfig.LensDistortionSetting",
+        "OFF",
+    ),
     "_UseLowResolutionSDF": False,
     "_GlobalSDFUpdateFrequency": enum_target(
         "via.render.GlobalSDFUpdateFrequency",

@@ -22,6 +22,11 @@ Better 4K HD Texture 是一个面向 Monster Hunter Wilds 的 `user.3` 配置补
 这些修改可以覆盖相关 `user.3` 暴露出的静态 LOD/Streaming 路径，但不会禁用模型资源自身写死的 LOD，也不会设置运行时的
 `via.render.MPMR.DisableLOD`。
 
+## 后处理设置
+
+`GraphicsPreset.user.3` 的全部 12 个 PC usage 将普通雾、体积雾、胶片颗粒、镜头光晕、God Ray 和镜头畸变开关设为关闭。
+这组修改只调整已有预设字段；抗锯齿、局部曝光、Echo、对比度和亮度设置不在本组调整范围内。
+
 <div align="center">
 <a href="https://github.com/dzxrly/PyREUser3">
   <picture>
@@ -319,7 +324,13 @@ GRAPHICS_PC_PRESET_TARGETS
 - _SamplerQuality: Anisotropic16
 - _SecondarySamplerQuality: Anisotropic16
 - _ShadowQuality: 3
+- _Fog_Enable: false
+- _VolumetricFogControl_Enable: false
 - _VolumetricFogControl_TextureSize: 1
+- _FilmGrain_Enable: false
+- _LensFlare_Enable: false
+- _GodRay_Enable: false
+- _LensDistortionSetting: OFF
 - _UseLowResolutionSDF: false
 - _GlobalSDFUpdateFrequency: Medium
 - _ShadowCasterCulling: false
