@@ -17,6 +17,7 @@ from .patches import (
     patch_grass_culling,
     patch_option_graphics,
     patch_option_graphics_preset,
+    patch_post_effect_common,
     patch_ray_tracing_for_stage,
 )
 from .pyreuser3_cached import CachedREUser3Converter
@@ -27,6 +28,7 @@ from .verify import (
     verify_grass_culling,
     verify_option_graphics,
     verify_option_graphics_preset,
+    verify_post_effect_common,
     verify_ray_tracing_for_stage,
 )
 
@@ -57,6 +59,11 @@ TASKS = [
         Path("natives/STM/System/SystemSetting/RayTracingForStageData.user.3"),
         patch_ray_tracing_for_stage,
         verify_ray_tracing_for_stage,
+    ),
+    User3Task(
+        Path("natives/STM/GameDesign/Camera/PostEffect/PostEffectCommonSceneBank.user.3"),
+        patch_post_effect_common,
+        verify_post_effect_common,
     ),
     User3Task(
         Path("natives/STM/GameDesign/Common/Option/OptionGraphicsData.user.3"),

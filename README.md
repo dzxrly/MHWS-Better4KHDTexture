@@ -27,6 +27,9 @@ Better 4K HD Texture 是一个面向 Monster Hunter Wilds 的 `user.3` 配置补
 `GraphicsPreset.user.3` 的全部 12 个 PC usage 将普通雾、体积雾、胶片颗粒、镜头光晕、God Ray 和镜头畸变开关设为关闭。
 这组修改只调整已有预设字段；抗锯齿、局部曝光、Echo、对比度和亮度设置不在本组调整范围内。
 
+`PostEffectCommonSceneBank.user.3` 的 3 个体积雾控制参数全部设为关闭，实际将其中 2 个开启的 `_Enabled` 改为 `false`。
+该修改在对应 Common 场景参数被请求时生效，地图覆盖范围仍需游戏内验证。
+
 <div align="center">
 <a href="https://github.com/dzxrly/PyREUser3">
   <picture>
@@ -46,6 +49,7 @@ Better 4K HD Texture 是一个面向 Monster Hunter Wilds 的 `user.3` 配置补
 - `natives/STM/System/SystemSetting/GraphicsPreset.user.3`
 - `natives/STM/System/SystemSetting/GraphicsManagerSetting.user.3`
 - `natives/STM/System/SystemSetting/RayTracingForStageData.user.3`
+- `natives/STM/GameDesign/Camera/PostEffect/PostEffectCommonSceneBank.user.3`
 - `natives/STM/GameDesign/Common/Option/OptionGraphicsData.user.3`
 - `natives/STM/GameDesign/Common/Option/OptionGraphicsPresetData.user.3`
 - `natives/STM/System/SystemSetting/AppStreamingControllerManagerSetting.user.3`
@@ -121,9 +125,10 @@ assets。
 - `main.py`：构建入口，调用 `utils.build.main()`
 - `utils/build.py`：构建流程、输出清理、patch、verify、打包调度
 - `utils/__init__.py`：集中维护目标属性和目标数值
-- `utils/patches.py`：读取 `utils/__init__.py` 中的目标定义，修改构建任务中的七个 `user.3`；Grass 文件由
+- `utils/patches.py`：读取 `utils/__init__.py` 中的目标定义，修改构建任务中的八个 `user.3`；Grass 文件由
   `patch_grass_culling()` 处理
 - `utils/verify.py`：读取同一份目标定义，构建后校验字段值
+- `utils/post_effect.py`：按 GUID 和参数类型校验 Common 场景库中已有的体积雾控制参数
 - `utils/package.py`：写入 `modinfo.ini`、复制 `cover.png`、生成 zip
 - `utils/pyreuser3_cached.py`：封装 `PyREUser3` 的读取、repack 和 pack
 - `utils/repack.py`：访问 repack JSON 的 helper，例如 `root_instance()`、`iter_ref_fields()`、`set_field()`
@@ -137,7 +142,7 @@ assets。
 
 需要调整目标属性或目标数值时，优先修改 `utils/__init__.py`。`utils/patches.py` 和 `utils/verify.py`
 会读取同一份定义，通常不需要同步改两处逻辑。构建源文件按游戏相对路径位于 `data/natives/STM/`，`utils.build.TASKS`
-只包含本索引列出的 GraphicsManager、GraphicsPreset、RayTracingForStage、OptionGraphics、OptionGraphicsPreset、AppStreaming 和 GrassCulling。
+只包含本索引列出的 GraphicsManager、GraphicsPreset、RayTracingForStage、PostEffectCommon、OptionGraphics、OptionGraphicsPreset、AppStreaming 和 GrassCulling。
 枚举字段必须通过 `data/Enums_Internal.json` 的类型与成员名解析，不能根据整数大小推断画质顺序。
 
 ### `GraphicsManagerSetting.user.3`
@@ -448,6 +453,24 @@ ST101 的 specular ray 与 frustum 原本已为 300，因此预期修改 3 项�
 保持源文件值。普通光追的 `_EnableLod`、`_EnableOverwriteLod`、`_OverwriteLod` 与 `_FoliageRayTracingLodOffset` 不存在于
 该 stage 数据结构中，因此仍由 `GraphicsPreset.user.3` 的 12 个 PC usage 统一控制。
 
+### `PostEffectCommonSceneBank.user.3`
+
+源文件：`data/natives/STM/GameDesign/Camera/PostEffect/PostEffectCommonSceneBank.user.3`
+
+- root class：`PostEffectSceneBank`
+- patch：`utils.patches.patch_post_effect_common`
+- verify：`utils.verify.verify_post_effect_common`
+- 目标定义：`POST_EFFECT_COMMON_VFOG_TARGETS`，`_Enabled=false`
+
+构建定位 `_Effects[17]._DataArray`，验证以下 3 个 holder GUID 及其 `ace.PostEffect.cVolumetricFogControlParam` 类型：
+
+- `38153bd0-948d-41bb-8b63-e53881a1774f`
+- `9b1174a9-8c34-4666-ada6-c96e097043fc`
+- `39167900-43be-4017-8086-f9b144db66b7`
+
+只修改已有的 `_Enabled`，不改变 holder 顺序、GUID、场景请求、插值、普通雾或具体雾体的密度等参数。
+条目数量、GUID、类型或布尔字段不符时，构建与验证均失败，不新增实例或字段。
+
 ### `OptionGraphicsData.user.3`
 
 源文件：`data/natives/STM/GameDesign/Common/Option/OptionGraphicsData.user.3`
@@ -567,7 +590,7 @@ APP_STREAMING_PROTECT_TARGETS
 
 ## 修改与验证不变量
 
-- `utils.build.TASKS` 是构建输入的唯一依据，当前固定为 GraphicsManager、GraphicsPreset、RayTracingForStage、OptionGraphics、OptionGraphicsPreset、AppStreaming 和 GrassCulling；其他文件不会因为存在于本地而自动打包。
+- `utils.build.TASKS` 是构建输入的唯一依据，当前固定为 GraphicsManager、GraphicsPreset、RayTracingForStage、PostEffectCommon、OptionGraphics、OptionGraphicsPreset、AppStreaming 和 GrassCulling；其他文件不会因为存在于本地而自动打包。
 - patch 与 verify 共用 `utils/__init__.py` 中的目标定义。新增或删除目标字段时，必须确认对应 patch 路径和验证范围仍然一致。
 - enum 目标必须由 `EnumLookup` 解析 `data/Enums_Internal.json` 中的类型与成员，禁止直接依据枚举整数大小推断质量高低。
 - GraphicsPreset 必须按 LOWEST、LOW、STANDARD、HIGH、HIGHEST 顺序包含 5 个 streaming texture setting 条目，且五档实际载荷必须完全命中同一目标。
@@ -580,5 +603,6 @@ APP_STREAMING_PROTECT_TARGETS
 - OptionGraphicsPreset 必须保持 5 个剔除预设档位的身份与顺序，并让每一档的 Mesh 剔除、meshlet 小物体阈值和参考分辨率完全一致。
 - GraphicsManager 只修改普通 streaming 资源过期帧数，对话专用过期帧数和其他字段保持源文件值。
 - GrassCulling 必须保持 4 个 `_Data` 和 12 个 `_StageData` 条目；构建保留原有顺序、stage ID 与 culling mode，但 `_StageData` 的写入与验证必须以 `(Fixed stage ID, culling mode)` 身份为准。身份重复、缺失或不在目标集合中时不得继续打包。
-- 成功构建必须生成七个已验证的 `user.3`、`modinfo.ini` 和 `cover.png`，最终 zip 恰好包含 9 个成员且不得含有 `TASKS` 之外的配置文件。
+- PostEffectCommon 必须包含预期的 3 个体积雾控制参数，按 GUID 校验身份并将已有 `_Enabled` 设为 `false`；保留所有引用与其他参数。
+- 成功构建必须生成八个已验证的 `user.3`、`modinfo.ini` 和 `cover.png`，最终 zip 恰好包含 10 个成员且不得含有 `TASKS` 之外的配置文件。
 - 修改目标或构建逻辑后必须运行 `python main.py`，并检查 `output/output.log` 中每个文件的变更数量、重建 JSON 与 `Verification passed` 结果。

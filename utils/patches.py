@@ -67,6 +67,7 @@ from . import (
     OPTION_GRAPHICS_SKY_CLOUD_OPTION_FIELD,
     OPTION_GRAPHICS_SKY_CLOUD_SETTING_FIELD,
     OPTION_GRAPHICS_SKY_CLOUD_TARGETS,
+    POST_EFFECT_COMMON_VFOG_TARGETS,
     RAY_TRACING_STAGE_DATA_LIST,
     RAY_TRACING_STAGE_EXPECTED_STAGES,
     RAY_TRACING_STAGE_EXPERIMENTAL_FIELD,
@@ -78,6 +79,7 @@ from . import (
 )
 from .enums import EnumLookup, enum_int
 from .grass import match_grass_stage_entries
+from .post_effect import match_common_volumetric_fog_controls
 from .repack import JsonDict, fields, instance, iter_ref_fields, root_instance, set_field
 
 
@@ -145,6 +147,19 @@ def patch_ray_tracing_for_stage(data: JsonDict, enums: EnumLookup) -> list[str]:
             enums,
             changes,
             f"RayTracingForStage[{index}:Stage={enum_int(actual)}]",
+        )
+    return changes
+
+
+def patch_post_effect_common(data: JsonDict, enums: EnumLookup) -> list[str]:
+    changes: list[str] = []
+    for guid, param in match_common_volumetric_fog_controls(data):
+        _apply_field_targets(
+            param,
+            POST_EFFECT_COMMON_VFOG_TARGETS,
+            enums,
+            changes,
+            f"PostEffectCommon.VolumetricFogControl[{guid}]",
         )
     return changes
 
