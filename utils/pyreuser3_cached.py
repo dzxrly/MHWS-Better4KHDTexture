@@ -33,8 +33,8 @@ class CachedREUser3Converter:
             user_magic=self.user_magic,
             rsz_magic=self.rsz_magic,
         )
-        self._prepare_exporter_metadata()
-        self.packer = self._new_shared_packer()
+        metadata = self._prepare_exporter_metadata()
+        self.packer = self._new_shared_packer(metadata)
 
     def readable(self, user3_path: Path, round_floats: bool = True) -> Any:
         tree = self.exporter._parse_user3(Path(user3_path))
@@ -50,26 +50,25 @@ class CachedREUser3Converter:
     def pack(self, data: Any) -> bytes:
         return self.packer.pack(data)
 
-    def _prepare_exporter_metadata(self) -> None:
+    def _prepare_exporter_metadata(self) -> tuple[dict, dict]:
         enums_internal, enum_context = self.exporter.export_il2cpp_metadata_from_path(
             self.il2cpp_dump_path
         )
-        self.exporter.enum_lookup = self.exporter._build_enum_lookup_from_enums_internal(
-            enums_internal
+        self.exporter.enum_lookup = (
+            self.exporter._build_enum_lookup_from_enums_internal(enums_internal)
         )
         self.exporter._apply_enum_context(enum_context)
         self.exporter._ensure_enum_lookup()
+        return enums_internal, enum_context
 
-    def _new_shared_packer(self) -> User3Packer:
-        packer = User3Packer.__new__(User3Packer)
-        packer.schema_path = self.exporter.schema_path
-        packer.typedb = self.exporter.typedb
-        packer.il2cpp_dump_path = None
-        packer.output_root = Path.cwd()
-        packer.user_magic = self.user_magic
-        packer.rsz_magic = self.rsz_magic
-        packer.enum_underlying_types = dict(self.exporter.enum_underlying_types)
-        packer.enum_lookup = self.exporter.enum_lookup
-        packer.member_lookup = packer._build_member_lookup()
-        packer.instances = []
-        return packer
+    def _new_shared_packer(self, metadata: tuple[dict, dict]) -> User3Packer:
+        # Let PyREUser3 initialize all packing context from the same cached metadata.
+        return User3Packer(
+            schema_dir=self.exporter.schema_path,
+            il2cpp_dump_path=self.il2cpp_dump_path,
+            output_root=Path.cwd(),
+            user_magic=self.user_magic,
+            rsz_magic=self.rsz_magic,
+            preloaded_typedb=self.exporter.typedb,
+            preloaded_il2cpp_metadata=metadata,
+        )
