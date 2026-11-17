@@ -10,6 +10,8 @@ from . import (
     APP_STREAMING_PLATFORM_TARGETS,
     APP_STREAMING_ROOT_CLASS,
     APP_STREAMING_SELECTED_PLATFORMS,
+    FOLIAGE_MANAGER_ROOT_CLASS,
+    FOLIAGE_MANAGER_TARGETS,
     GRAPHICS_DATA_LIST,
     GRAPHICS_EXPERIMENTAL_RAY_TRACE_FIELD,
     GRAPHICS_MANAGER_ROOT_CLASS,
@@ -48,16 +50,17 @@ from . import (
     GRASS_CULLING_ROOT_CLASS,
     GRASS_CULLING_ROOT_TARGETS,
     GRASS_CULLING_STAGE_DATA_LIST,
+    MOSS_CULLING_ROOT_CLASS,
+    MOSS_CULLING_TARGETS,
     OPTION_GRAPHICS_ITEMS_FIELD,
     OPTION_GRAPHICS_MESH_EXPECTED_OPTIONS,
     OPTION_GRAPHICS_MESH_OPTION_FIELD,
     OPTION_GRAPHICS_MESH_SETTING_FIELD,
     OPTION_GRAPHICS_MESH_TARGETS,
-    OPTION_GRAPHICS_PRESET_CULLING_EXPECTED_QUALITIES,
-    OPTION_GRAPHICS_PRESET_CULLING_LIST,
-    OPTION_GRAPHICS_PRESET_CULLING_QUALITY_FIELD,
-    OPTION_GRAPHICS_PRESET_CULLING_TARGETS,
+    OPTION_GRAPHICS_PRESET_EXPECTED_QUALITIES,
+    OPTION_GRAPHICS_PRESET_QUALITY_FIELD,
     OPTION_GRAPHICS_PRESET_ROOT_CLASS,
+    OPTION_GRAPHICS_PRESET_TARGETS,
     OPTION_GRAPHICS_RAY_TRACING_EXPECTED_OPTIONS,
     OPTION_GRAPHICS_RAY_TRACING_OPTION_FIELD,
     OPTION_GRAPHICS_RAY_TRACING_SETTING_FIELD,
@@ -67,6 +70,7 @@ from . import (
     OPTION_GRAPHICS_SKY_CLOUD_OPTION_FIELD,
     OPTION_GRAPHICS_SKY_CLOUD_SETTING_FIELD,
     OPTION_GRAPHICS_SKY_CLOUD_TARGETS,
+    OPTION_GRAPHICS_TEXTURE_NO_DLC_FALLBACK,
     POST_EFFECT_COMMON_VFOG_TARGETS,
     RAY_TRACING_STAGE_DATA_LIST,
     RAY_TRACING_STAGE_EXPECTED_STAGES,
@@ -79,8 +83,16 @@ from . import (
 )
 from .enums import EnumLookup, enum_int
 from .grass import match_grass_stage_entries
+from .option_graphics import iter_highest_mappings
 from .post_effect import match_common_volumetric_fog_controls
-from .repack import JsonDict, fields, instance, iter_ref_fields, root_instance, set_field
+from .repack import (
+    JsonDict,
+    fields,
+    instance,
+    iter_ref_fields,
+    root_instance,
+    set_field,
+)
 
 
 def patch_graphics_manager(data: JsonDict, enums: EnumLookup) -> list[str]:
@@ -212,6 +224,31 @@ def patch_option_graphics(data: JsonDict, enums: EnumLookup) -> list[str]:
         changes,
         "OptionGraphics.RayTracing",
     )
+    for name, highest, entries, preserved_fields in iter_highest_mappings(
+        data=data,
+        root_fields=root_fields,
+        enums=enums,
+    ):
+        for entry in entries:
+            if entry is highest:
+                continue
+            context = f"OptionGraphics.{name}[{entry['_Option']}]"
+            _copy_instance_payload(
+                data=data,
+                source=highest,
+                target=entry,
+                changes=changes,
+                context=context,
+                preserved_fields=preserved_fields,
+            )
+            if name == "_TextureQuality":
+                set_field(
+                    target=entry,
+                    name="_ValueNoDlc",
+                    value=OPTION_GRAPHICS_TEXTURE_NO_DLC_FALLBACK,
+                    changes=changes,
+                    context=context,
+                )
     return changes
 
 
@@ -222,16 +259,17 @@ def patch_option_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]
     if not isinstance(root_fields, dict):
         raise ValueError(f"{OPTION_GRAPHICS_PRESET_ROOT_CLASS} root has no fields")
 
-    _patch_keyed_target_list(
-        data,
-        root_fields.get(OPTION_GRAPHICS_PRESET_CULLING_LIST),
-        OPTION_GRAPHICS_PRESET_CULLING_QUALITY_FIELD,
-        OPTION_GRAPHICS_PRESET_CULLING_EXPECTED_QUALITIES,
-        OPTION_GRAPHICS_PRESET_CULLING_TARGETS,
-        enums,
-        changes,
-        "OptionGraphicsPreset.CullingSettings",
-    )
+    for name, targets in OPTION_GRAPHICS_PRESET_TARGETS.items():
+        _patch_keyed_target_list(
+            data=data,
+            refs=root_fields[name],
+            key_field=OPTION_GRAPHICS_PRESET_QUALITY_FIELD,
+            expected_keys=OPTION_GRAPHICS_PRESET_EXPECTED_QUALITIES,
+            targets=targets,
+            enums=enums,
+            changes=changes,
+            context=f"OptionGraphicsPreset.{name}",
+        )
     return changes
 
 
@@ -308,6 +346,38 @@ def patch_grass_culling(data: JsonDict, enums: EnumLookup) -> list[str]:
             changes,
             f"GrassCulling.StageData[{index}:Stage={stage},Mode={culling_mode}]",
         )
+    return changes
+
+
+def patch_moss_culling(data: JsonDict, enums: EnumLookup) -> list[str]:
+    changes: list[str] = []
+    root = root_instance(
+        data=data,
+        class_suffix=MOSS_CULLING_ROOT_CLASS,
+    )
+    _apply_field_targets(
+        target=root["fields"],
+        targets=MOSS_CULLING_TARGETS,
+        enums=enums,
+        changes=changes,
+        context="MossCulling",
+    )
+    return changes
+
+
+def patch_foliage_manager(data: JsonDict, enums: EnumLookup) -> list[str]:
+    changes: list[str] = []
+    root = root_instance(
+        data=data,
+        class_suffix=FOLIAGE_MANAGER_ROOT_CLASS,
+    )
+    _apply_field_targets(
+        target=root["fields"],
+        targets=FOLIAGE_MANAGER_TARGETS,
+        enums=enums,
+        changes=changes,
+        context="FoliageManager",
+    )
     return changes
 
 
@@ -453,7 +523,9 @@ def _patch_pc_graphics_presets(
         if enum_int(entry.get(GRAPHICS_PLATFORM_FIELD)) == GRAPHICS_PC_PLATFORM
     ]
     if not targets:
-        raise ValueError(f"PC graphics presets (_Platform={GRAPHICS_PC_PLATFORM}) not found")
+        raise ValueError(
+            f"PC graphics presets (_Platform={GRAPHICS_PC_PLATFORM}) not found"
+        )
     found_usages = {enum_int(target.get(GRAPHICS_USAGE_FIELD)) for target in targets}
     expected_usages = set(GRAPHICS_PC_EXPECTED_USAGES)
     if len(targets) != len(expected_usages) or found_usages != expected_usages:
@@ -534,7 +606,7 @@ def _copy_instance_payload(
     target_names = set(target) - preserved_fields
     if source_names != target_names:
         raise ValueError(
-            f"{context} fields do not match PC_Highest: "
+            f"{context} fields do not match the source option or preset: "
             f"missing={sorted(source_names - target_names)}, "
             f"extra={sorted(target_names - source_names)}"
         )
@@ -562,7 +634,9 @@ def _copy_instance_payload(
                 )
             source_fields = source_instance.get("fields")
             target_fields = target_instance.get("fields")
-            if not isinstance(source_fields, dict) or not isinstance(target_fields, dict):
+            if not isinstance(source_fields, dict) or not isinstance(
+                target_fields, dict
+            ):
                 raise ValueError(f"{context}.{name} referenced instance has no fields")
             _copy_instance_payload(
                 data,
@@ -573,12 +647,16 @@ def _copy_instance_payload(
                 visited_refs=visited_refs,
             )
         elif isinstance(source_value, list) and _contains_instance_refs(source_value):
-            if not isinstance(target_value, list) or len(source_value) != len(target_value):
+            if not isinstance(target_value, list) or len(source_value) != len(
+                target_value
+            ):
                 raise ValueError(f"{context}.{name} reference list shape mismatch")
             for item_index, (source_item, target_item) in enumerate(
                 zip(source_value, target_value)
             ):
-                if not _is_instance_ref(source_item) or not _is_instance_ref(target_item):
+                if not _is_instance_ref(source_item) or not _is_instance_ref(
+                    target_item
+                ):
                     raise ValueError(
                         f"{context}.{name}[{item_index}] is not a compatible instance ref"
                     )
@@ -635,9 +713,7 @@ def _patch_protect_list(
 ) -> None:
     entries = list(iter_ref_fields(data, refs))
     if len(entries) < len(targets):
-        raise ValueError(
-            f"{context} must contain at least {len(targets)} entries"
-        )
+        raise ValueError(f"{context} must contain at least {len(targets)} entries")
     for index, expected in enumerate(targets):
         entry = entries[index]
         _apply_field_targets(
@@ -742,4 +818,6 @@ def _apply_field_targets(
     context: str,
 ) -> None:
     for field_name, value in targets.items():
-        set_field(target, field_name, resolve_target_value(value, enums), changes, context)
+        set_field(
+            target, field_name, resolve_target_value(value, enums), changes, context
+        )

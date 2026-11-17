@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any, TypeAlias
 
-
 EnumTarget: TypeAlias = tuple[str, str]
 TargetValue: TypeAlias = bool | int | float | EnumTarget
 FieldTargets: TypeAlias = dict[str, TargetValue]
@@ -135,8 +134,13 @@ GRAPHICS_PC_PRESET_TARGETS: FieldTargets = {
     ),
     "_MeshQuality": 0,
     "_SamplerQuality": enum_target("via.render.SamplerQuality", "Anisotropic16"),
-    "_SecondarySamplerQuality": enum_target("via.render.SamplerQuality", "Anisotropic16"),
-    "_ShadowQuality": 3,
+    "_SecondarySamplerQuality": enum_target(
+        "via.render.SamplerQuality", "Anisotropic16"
+    ),
+    "_ShadowQuality": enum_target(
+        enum_type="via.render.RenderConfig.Quality", member="HIGHEST"
+    ),
+    "_LowQualitySDFShadow": False,
     "_Fog_Enable": False,
     "_VolumetricFogControl_Enable": False,
     "_VolumetricFogControl_TextureSize": 1,
@@ -198,6 +202,9 @@ GRAPHICS_PC_PRESET_TARGETS: FieldTargets = {
     "_UseLowShellFur": False,
     "_UseLowWindSimulation": False,
     "_UseLowWaterSimulation": False,
+    "_AOSetting": enum_target(
+        enum_type="via.render.RenderConfig.Quality", member="LOW"
+    ),
     "_SSAO_HalfResolution": False,
     "_GeometryAO_HalfResolution": False,
     "_ParticleLightingResolution": enum_target(
@@ -207,7 +214,9 @@ GRAPHICS_PC_PRESET_TARGETS: FieldTargets = {
     "_StrandShadingQuality": 0,
     "_Bloom_IsHighPrecision": True,
     "_MainRaymarchResolution": enum_target("via.render.Cloudscape2.Resolution", "Full"),
-    "_IBLRaymarchResolution": enum_target("via.render.Cloudscape2.IBLResolution", "Full"),
+    "_IBLRaymarchResolution": enum_target(
+        "via.render.Cloudscape2.IBLResolution", "Full"
+    ),
     "_IBLRaymarchScale": 1.0,
     "_IBLPartialDrawFrame": 4,
 }
@@ -283,24 +292,57 @@ OPTION_GRAPHICS_RAY_TRACING_TARGETS: tuple[FieldTargets, ...] = (
     OPTION_GRAPHICS_RAY_TRACING_OFF_TARGETS,
 )
 
+OPTION_GRAPHICS_HIGHEST_OPTIONS: dict[str, EnumTarget] = {
+    "_TextureQuality": enum_target(
+        enum_type="app.OptionParamDef.TEXTURE_QUALITY", member="HIGHEST"
+    ),
+    "_TextureFiltering": enum_target(
+        enum_type="app.OptionParamDef.TEXTURE_FILTER", member="ANISOTROPIC16"
+    ),
+    "_PlantDensity": enum_target(
+        enum_type="app.OptionParamDef.PLANT_DENSITY", member="HIGH"
+    ),
+    "_ShadowQuality": enum_target(
+        enum_type="app.OptionParamDef.SHADOW_QUALITY", member="HIGHEST"
+    ),
+    "_ShadowCastDistance": enum_target(
+        enum_type="app.OptionParamDef.SHADOW_CAST_DISTANCE", member="FAR"
+    ),
+    "_DistantShadow": enum_target(
+        enum_type="app.OptionParamDef.DISTANT_SHADOW", member="HIGH"
+    ),
+    "_AmbientOcclusion": enum_target(
+        enum_type="app.OptionParamDef.AMBIENT_OCCLUSION", member="HIGH"
+    ),
+    "_SandSnowWaterQuality": enum_target(
+        enum_type="app.OptionParamDef.SAND_SNOW_WATER_QUALITY", member="HIGHEST"
+    ),
+}
+
+# The HIGHEST menu item is DLC-only. HIGH's base-game texture level is 0.
+OPTION_GRAPHICS_TEXTURE_NO_DLC_HIGHEST = -1
+OPTION_GRAPHICS_TEXTURE_NO_DLC_FALLBACK = 0
+
 OPTION_GRAPHICS_PRESET_ROOT_CLASS = "OptionGraphicsPresetData"
-OPTION_GRAPHICS_PRESET_CULLING_LIST = "_CullingSettings"
-OPTION_GRAPHICS_PRESET_CULLING_QUALITY_FIELD = "_Quality"
-OPTION_GRAPHICS_PRESET_CULLING_EXPECTED_QUALITIES = (
+OPTION_GRAPHICS_PRESET_QUALITY_FIELD = "_Quality"
+OPTION_GRAPHICS_PRESET_EXPECTED_QUALITIES = (
     enum_target("app.OptionParamDef.PRESET_QUALITY", "ULTRA"),
     enum_target("app.OptionParamDef.PRESET_QUALITY", "HIGH"),
     enum_target("app.OptionParamDef.PRESET_QUALITY", "STANDARD"),
     enum_target("app.OptionParamDef.PRESET_QUALITY", "LOW"),
     enum_target("app.OptionParamDef.PRESET_QUALITY", "LOWEST"),
 )
-OPTION_GRAPHICS_PRESET_CULLING_TARGETS: FieldTargets = {
-    "_Value": GRAPHICS_PC_PRESET_TARGETS["_MeshCullingSetting"],
-    "_SmallObjectCulling": GRAPHICS_PC_PRESET_TARGETS[
-        "_MeshletSmallObjectCulling"
-    ],
-    "_MPMRSmallObjectCullingResolution": GRAPHICS_PC_PRESET_TARGETS[
-        "_SmallObjectCullingResolution"
-    ],
+OPTION_GRAPHICS_PRESET_TARGETS: dict[str, FieldTargets] = {
+    "_CullingSettings": {
+        "_Value": GRAPHICS_PC_PRESET_TARGETS["_MeshCullingSetting"],
+        "_SmallObjectCulling": GRAPHICS_PC_PRESET_TARGETS["_MeshletSmallObjectCulling"],
+        "_MPMRSmallObjectCullingResolution": GRAPHICS_PC_PRESET_TARGETS[
+            "_SmallObjectCullingResolution"
+        ],
+    },
+    "_SandSnowWaterQuality": {
+        "_Value": OPTION_GRAPHICS_HIGHEST_OPTIONS["_SandSnowWaterQuality"]
+    },
 }
 
 
@@ -408,6 +450,11 @@ APP_STREAMING_PROTECT_TARGETS: dict[str, list[FieldTargets]] = {
 
 
 GRASS_CULLING_ROOT_CLASS = "GrassCullingSetting"
+MOSS_CULLING_ROOT_CLASS = "MossCullingSetting"
+MOSS_CULLING_TARGETS: FieldTargets = {"_Enable": False}
+FOLIAGE_MANAGER_ROOT_CLASS = "FoliageManagerSetting"
+FOLIAGE_MANAGER_TARGETS: FieldTargets = {"_UseTextureStreamingDistanceThreshold": False}
+
 GRASS_CULLING_DATA_LIST = "_Data"
 GRASS_CULLING_STAGE_DATA_LIST = "_StageData"
 GRASS_CULLING_STAGE_ID_FIELD = "_StageID_Fixed"

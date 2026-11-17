@@ -18,6 +18,9 @@ Better 4K HD Texture 是一个面向 Monster Hunter Wilds 的 `user.3` 配置补
 - 将普通 streaming 资源的过期时间从 60 帧提高到 300 帧，对话状态的 6000 帧保持不变。
 - 普通游戏保护 LOD0/mip0 至 40 米，过场保护至 50 米，同时把淡入预加载范围提高到 192 米。
 - 使用 0.5 秒 dithered LOD 过渡，并关闭 shadow LOD、shadow cache LOD 与两种 shadow caster culling。
+- PC 阴影质量设为 `HIGHEST`（4），阴影距离统一选用原版 `FAR` 档，远景阴影采用原版高档。
+- 关闭苔藓距离剔除和植被专用的 200 米纹理流送距离阈值。
+- 纹理、纹理过滤、植被密度、阴影质量与距离、远景阴影、环境光遮蔽和沙雪水选项使用原版最高档载荷。
 
 这些修改可以覆盖相关 `user.3` 暴露出的静态 LOD/Streaming 路径，但不会禁用模型资源自身写死的 LOD，也不会设置运行时的
 `via.render.MPMR.DisableLOD`。
@@ -125,7 +128,7 @@ assets。
 - `main.py`：构建入口，调用 `utils.build.main()`
 - `utils/build.py`：构建流程、输出清理、patch、verify、打包调度
 - `utils/__init__.py`：集中维护目标属性和目标数值
-- `utils/patches.py`：读取 `utils/__init__.py` 中的目标定义，修改构建任务中的八个 `user.3`；Grass 文件由
+- `utils/patches.py`：读取 `utils/__init__.py` 中的目标定义，修改构建任务中的十个 `user.3`；Grass 文件由
   `patch_grass_culling()` 处理
 - `utils/verify.py`：读取同一份目标定义，构建后校验字段值
 - `utils/post_effect.py`：按 GUID 和参数类型校验 Common 场景库中已有的体积雾控制参数
@@ -142,7 +145,7 @@ assets。
 
 需要调整目标属性或目标数值时，优先修改 `utils/__init__.py`。`utils/patches.py` 和 `utils/verify.py`
 会读取同一份定义，通常不需要同步改两处逻辑。构建源文件按游戏相对路径位于 `data/natives/STM/`，`utils.build.TASKS`
-只包含本索引列出的 GraphicsManager、GraphicsPreset、RayTracingForStage、PostEffectCommon、OptionGraphics、OptionGraphicsPreset、AppStreaming 和 GrassCulling。
+只包含本索引列出的 GraphicsManager、GraphicsPreset、RayTracingForStage、PostEffectCommon、OptionGraphics、OptionGraphicsPreset、AppStreaming、GrassCulling、MossCulling 和 FoliageManager。
 枚举字段必须通过 `data/Enums_Internal.json` 的类型与成员名解析，不能根据整数大小推断画质顺序。
 
 ### `GraphicsManagerSetting.user.3`
@@ -328,7 +331,8 @@ GRAPHICS_PC_PRESET_TARGETS
 - _MeshQuality: 0
 - _SamplerQuality: Anisotropic16
 - _SecondarySamplerQuality: Anisotropic16
-- _ShadowQuality: 3
+- _ShadowQuality: HIGHEST（4）
+- _LowQualitySDFShadow: false
 - _Fog_Enable: false
 - _VolumetricFogControl_Enable: false
 - _VolumetricFogControl_TextureSize: 1
@@ -369,6 +373,7 @@ GRAPHICS_PC_PRESET_TARGETS
 - _UseLowShellFur: false
 - _UseLowWindSimulation: false
 - _UseLowWaterSimulation: false
+- _AOSetting: LOW（原版环境光遮蔽 HIGH 菜单档的底层值）
 - _SSAO_HalfResolution: false
 - _GeometryAO_HalfResolution: false
 - _ParticleLightingResolution: Best
@@ -380,6 +385,8 @@ GRAPHICS_PC_PRESET_TARGETS
 - _IBLPartialDrawFrame: 4
 
 `_StrandShadingQuality` 在目标 schema 中是未绑定 enum 的整数；当前值 `0` 对应官方预设中的 High。
+
+`_ShadowCastDistanceType` 选择原版 `FAR` 的 3 级级联行，分区值为 `[2, 10, 30, 100]`。根部 `_ShadowDistanceSettings` 表为各平台共用数据，原样保留。
 
 GRAPHICS_PC_RAY_TRACING_TARGETS
 
@@ -499,7 +506,9 @@ ST101 的 specular ray 与 frustum 原本已为 300，因此预期修改 3 项�
 - `_RayTracingResRatio`: 1.0
 
 OFF 条目则固定为 `_Enable: false`、`_Quality: NONE`、`_RayTracingResRatio: 1.0`，确保关闭语义不被破坏。因此 UI 中保存的
-Mesh、天空/云或任一非 OFF 光追档位重新应用时，目标字段仍与静态 `GraphicsPreset` 一致；其他 UI 载荷保持源文件行为。
+Mesh、天空/云或任一非 OFF 光追档位重新应用时，目标字段仍与静态 `GraphicsPreset` 一致。
+
+纹理、纹理过滤、植被密度、阴影质量、阴影距离、远景阴影、环境光遮蔽和沙雪水保留各自的 `_Option` 和原始顺序，各档应用对应的原版最高档载荷。纹理的 `HIGHEST` 保留无高清纹理包时的 `-1` 值，其余档位在无高清纹理包时统一采用原版 `HIGH` 的纹理级别。沙雪水包含地表及阴影细分级别 `4`、着色器切换距离 `500` 米、过渡距离 `60` 米、地表 clipmap 最大范围 `1024` 米和各关卡的细节层级切换参数。
 
 ### `OptionGraphicsPresetData.user.3`
 
@@ -517,7 +526,7 @@ Mesh、天空/云或任一非 OFF 光追档位重新应用时，目标字段仍�
 - `_SmallObjectCulling`: 0.0，对应运行时 `_MeshletSmallObjectCulling`
 - `_MPMRSmallObjectCullingResolution`: 2160p，对应运行时 `_SmallObjectCullingResolution`
 
-这只固定项目声明保护的剔除字段，不改写总体图形预设中的其他选项索引。
+独立的 `_SandSnowWaterQuality` 表也按 `_Quality` 保留原有身份和顺序，五档的 `_Value` 都设为 `HIGHEST`。总体预设 `_Settings` 中的菜单选择索引保留原值。
 
 ### `AppStreamingControllerManagerSetting.user.3`
 
@@ -588,9 +597,15 @@ APP_STREAMING_PROTECT_TARGETS
 普通 `_Data` 目标在 `GRASS_CULLING_DATA_TARGETS` 中按原文件顺序显式列出。`_StageData` 则由 `GRASS_CULLING_STAGE_DATA_TARGETS` 按
 `(app.FieldDef.STAGE_Fixed, _CullingMode)` 身份映射，patch 与 verify 不依赖数组位置，并会拒绝重复、缺失或意外身份，防止游戏更新或条目重排后把参数写到错误关卡。
 
+### `MossCullingSetting.user.3` 和 `FoliageManagerSetting.user.3`
+
+两个源文件均位于 `data/natives/STM/System/SystemSetting/`。苔藓配置将 `_Enable` 设为 `false`。游戏计算着色器路径据此将距离剔除的起点替换为浮点最大值，默认与各关卡的距离、过渡和容量数据仍保留原值。
+
+植被配置将 `_UseTextureStreamingDistanceThreshold` 设为 `false`，关闭该管理器专用的 200 米阈值。全局纹理流送预算仍由 `GraphicsPreset.user.3` 控制。
+
 ## 修改与验证不变量
 
-- `utils.build.TASKS` 是构建输入的唯一依据，当前固定为 GraphicsManager、GraphicsPreset、RayTracingForStage、PostEffectCommon、OptionGraphics、OptionGraphicsPreset、AppStreaming 和 GrassCulling；其他文件不会因为存在于本地而自动打包。
+- `utils.build.TASKS` 是构建输入的唯一依据，当前包含上面列出的十个文件。
 - patch 与 verify 共用 `utils/__init__.py` 中的目标定义。新增或删除目标字段时，必须确认对应 patch 路径和验证范围仍然一致。
 - enum 目标必须由 `EnumLookup` 解析 `data/Enums_Internal.json` 中的类型与成员，禁止直接依据枚举整数大小推断质量高低。
 - GraphicsPreset 必须按 LOWEST、LOW、STANDARD、HIGH、HIGHEST 顺序包含 5 个 streaming texture setting 条目，且五档实际载荷必须完全命中同一目标。
@@ -600,9 +615,10 @@ APP_STREAMING_PROTECT_TARGETS
 - RayTracingForStage 必须保持上述 11 个 stage 的数量、身份与原始顺序，只修改每项嵌套实验性光追块中的五个目标字段；`_Stage` 与降噪器字段不得被写入。
 - OptionGraphics 必须保持 3 个 Mesh、6 个天空/云以及 HIGH、STANDARD、LOW、OFF 共 4 个光追 UI 档位的 `_Option`
   身份与顺序；所有非 OFF 光追档统一使用 HIGH/全分辨率载荷，OFF 必须保持关闭且任何身份键都不得被 patch 写入。
-- OptionGraphicsPreset 必须保持 5 个剔除预设档位的身份与顺序，并让每一档的 Mesh 剔除、meshlet 小物体阈值和参考分辨率完全一致。
+- OptionGraphics 的八项最高档映射保留菜单身份与顺序。沙雪水的关卡成员必须在各档之间对应，纹理的无高清包取值单独验证。
+- OptionGraphicsPreset 必须保持 5 个剔除与沙雪水预设档位的身份与顺序，各档使用相同的 Mesh 剔除载荷和最高沙雪水档。
 - GraphicsManager 只修改普通 streaming 资源过期帧数，对话专用过期帧数和其他字段保持源文件值。
 - GrassCulling 必须保持 4 个 `_Data` 和 12 个 `_StageData` 条目；构建保留原有顺序、stage ID 与 culling mode，但 `_StageData` 的写入与验证必须以 `(Fixed stage ID, culling mode)` 身份为准。身份重复、缺失或不在目标集合中时不得继续打包。
 - PostEffectCommon 必须包含预期的 3 个体积雾控制参数，按 GUID 校验身份并将已有 `_Enabled` 设为 `false`；保留所有引用与其他参数。
-- 成功构建必须生成八个已验证的 `user.3`、`modinfo.ini` 和 `cover.png`，最终 zip 恰好包含 10 个成员且不得含有 `TASKS` 之外的配置文件。
+- 成功构建必须生成十个已验证的 `user.3`、`modinfo.ini` 和 `cover.png`，最终 zip 恰好包含 12 个成员且不得含有 `TASKS` 之外的配置文件。
 - 修改目标或构建逻辑后必须运行 `python main.py`，并检查 `output/output.log` 中每个文件的变更数量、重建 JSON 与 `Verification passed` 结果。

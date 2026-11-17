@@ -7,6 +7,8 @@ from . import (
     APP_STREAMING_PLATFORM_TARGETS,
     APP_STREAMING_ROOT_CLASS,
     APP_STREAMING_SELECTED_PLATFORMS,
+    FOLIAGE_MANAGER_ROOT_CLASS,
+    FOLIAGE_MANAGER_TARGETS,
     GRAPHICS_DATA_LIST,
     GRAPHICS_EXPERIMENTAL_RAY_TRACE_FIELD,
     GRAPHICS_MANAGER_ROOT_CLASS,
@@ -44,16 +46,17 @@ from . import (
     GRASS_CULLING_ROOT_CLASS,
     GRASS_CULLING_ROOT_TARGETS,
     GRASS_CULLING_STAGE_DATA_LIST,
+    MOSS_CULLING_ROOT_CLASS,
+    MOSS_CULLING_TARGETS,
     OPTION_GRAPHICS_ITEMS_FIELD,
     OPTION_GRAPHICS_MESH_EXPECTED_OPTIONS,
     OPTION_GRAPHICS_MESH_OPTION_FIELD,
     OPTION_GRAPHICS_MESH_SETTING_FIELD,
     OPTION_GRAPHICS_MESH_TARGETS,
-    OPTION_GRAPHICS_PRESET_CULLING_EXPECTED_QUALITIES,
-    OPTION_GRAPHICS_PRESET_CULLING_LIST,
-    OPTION_GRAPHICS_PRESET_CULLING_QUALITY_FIELD,
-    OPTION_GRAPHICS_PRESET_CULLING_TARGETS,
+    OPTION_GRAPHICS_PRESET_EXPECTED_QUALITIES,
+    OPTION_GRAPHICS_PRESET_QUALITY_FIELD,
     OPTION_GRAPHICS_PRESET_ROOT_CLASS,
+    OPTION_GRAPHICS_PRESET_TARGETS,
     OPTION_GRAPHICS_RAY_TRACING_EXPECTED_OPTIONS,
     OPTION_GRAPHICS_RAY_TRACING_OPTION_FIELD,
     OPTION_GRAPHICS_RAY_TRACING_SETTING_FIELD,
@@ -63,6 +66,8 @@ from . import (
     OPTION_GRAPHICS_SKY_CLOUD_OPTION_FIELD,
     OPTION_GRAPHICS_SKY_CLOUD_SETTING_FIELD,
     OPTION_GRAPHICS_SKY_CLOUD_TARGETS,
+    OPTION_GRAPHICS_TEXTURE_NO_DLC_FALLBACK,
+    OPTION_GRAPHICS_TEXTURE_NO_DLC_HIGHEST,
     POST_EFFECT_COMMON_VFOG_TARGETS,
     RAY_TRACING_STAGE_DATA_LIST,
     RAY_TRACING_STAGE_EXPECTED_STAGES,
@@ -75,6 +80,7 @@ from . import (
 )
 from .enums import EnumLookup, enum_int
 from .grass import match_grass_stage_entries
+from .option_graphics import iter_highest_mappings
 from .post_effect import match_common_volumetric_fog_controls
 from .repack import JsonDict, fields, instance, iter_ref_fields, root_instance
 
@@ -113,7 +119,9 @@ def verify_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
             root_fields[GRAPHICS_STREAMING_TEXTURE_SETTING_LIST],
         )
     )
-    if len(texture_settings) != len(GRAPHICS_STREAMING_TEXTURE_SETTING_EXPECTED_QUALITIES):
+    if len(texture_settings) != len(
+        GRAPHICS_STREAMING_TEXTURE_SETTING_EXPECTED_QUALITIES
+    ):
         raise AssertionError(
             f"expected {len(GRAPHICS_STREAMING_TEXTURE_SETTING_EXPECTED_QUALITIES)} "
             f"streaming texture setting entries, got {len(texture_settings)}"
@@ -121,7 +129,9 @@ def verify_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
     for index, (texture_setting, expected_quality) in enumerate(
         zip(texture_settings, GRAPHICS_STREAMING_TEXTURE_SETTING_EXPECTED_QUALITIES)
     ):
-        actual_quality = texture_setting.get(GRAPHICS_STREAMING_TEXTURE_SETTING_QUALITY_FIELD)
+        actual_quality = texture_setting.get(
+            GRAPHICS_STREAMING_TEXTURE_SETTING_QUALITY_FIELD
+        )
         resolved_quality = resolve_target_value(expected_quality, enums)
         if enum_int(actual_quality) != enum_int(resolved_quality):
             messages.append(
@@ -137,8 +147,7 @@ def verify_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
             entry_messages,
         )
         messages.extend(
-            f"StreamingTextureSetting[{index}].{message}"
-            for message in entry_messages
+            f"StreamingTextureSetting[{index}].{message}" for message in entry_messages
         )
 
     texture_limits = list(
@@ -152,7 +161,9 @@ def verify_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
     for index, (texture_limit, expected_threshold) in enumerate(
         zip(texture_limits, GRAPHICS_STREAMING_TEXTURE_LIMIT_EXPECTED_THRESHOLDS)
     ):
-        actual_threshold = texture_limit.get(GRAPHICS_STREAMING_TEXTURE_LIMIT_MATCH_FIELD)
+        actual_threshold = texture_limit.get(
+            GRAPHICS_STREAMING_TEXTURE_LIMIT_MATCH_FIELD
+        )
         if actual_threshold != expected_threshold:
             messages.append(
                 f"StreamingTextureLimit[{index}]."
@@ -167,8 +178,7 @@ def verify_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
             entry_messages,
         )
         messages.extend(
-            f"StreamingTextureLimit[{index}].{message}"
-            for message in entry_messages
+            f"StreamingTextureLimit[{index}].{message}" for message in entry_messages
         )
 
     all_mesh_limits = list(
@@ -191,7 +201,9 @@ def verify_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
         )
 
     manager = fields(data, root_fields[GRAPHICS_RAY_TRACING_MANAGER_FIELD])
-    _expect_field_targets(manager, GRAPHICS_RAY_TRACING_MANAGER_TARGETS, enums, messages)
+    _expect_field_targets(
+        manager, GRAPHICS_RAY_TRACING_MANAGER_TARGETS, enums, messages
+    )
 
     presets = _find_pc_graphics_presets(data, root_fields)
     template = next(
@@ -203,7 +215,9 @@ def verify_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str]:
         _expect_field_targets(preset, GRAPHICS_PC_PRESET_TARGETS, enums, messages)
 
         ray_tracing = fields(data, preset[GRAPHICS_RAY_TRACING_FIELD])
-        _expect_field_targets(ray_tracing, GRAPHICS_PC_RAY_TRACING_TARGETS, enums, messages)
+        _expect_field_targets(
+            ray_tracing, GRAPHICS_PC_RAY_TRACING_TARGETS, enums, messages
+        )
 
         experimental = fields(data, preset[GRAPHICS_EXPERIMENTAL_RAY_TRACE_FIELD])
         _expect_field_targets(
@@ -274,7 +288,9 @@ def verify_post_effect_common(data: JsonDict, enums: EnumLookup) -> list[str]:
     messages: list[str] = []
     for guid, param in match_common_volumetric_fog_controls(data):
         entry_messages: list[str] = []
-        _expect_field_targets(param, POST_EFFECT_COMMON_VFOG_TARGETS, enums, entry_messages)
+        _expect_field_targets(
+            param, POST_EFFECT_COMMON_VFOG_TARGETS, enums, entry_messages
+        )
         messages.extend(
             f"PostEffectCommon.VolumetricFogControl[{guid}].{message}"
             for message in entry_messages
@@ -328,6 +344,32 @@ def verify_option_graphics(data: JsonDict, enums: EnumLookup) -> list[str]:
         messages,
         "OptionGraphics.RayTracing",
     )
+    for name, highest, entries, preserved_fields in iter_highest_mappings(
+        data=data,
+        root_fields=root_fields,
+        enums=enums,
+    ):
+        for entry in entries:
+            context = f"OptionGraphics.{name}[{entry['_Option']}]"
+            if entry is not highest:
+                _expect_same_instance_payload(
+                    data=data,
+                    expected=highest,
+                    actual=entry,
+                    messages=messages,
+                    context=context,
+                    ignored_fields=preserved_fields,
+                )
+            if name == "_TextureQuality":
+                expected_no_dlc = (
+                    OPTION_GRAPHICS_TEXTURE_NO_DLC_HIGHEST
+                    if entry is highest
+                    else OPTION_GRAPHICS_TEXTURE_NO_DLC_FALLBACK
+                )
+                if entry["_ValueNoDlc"] != expected_no_dlc:
+                    messages.append(
+                        f"{context}._ValueNoDlc: expected {expected_no_dlc}"
+                    )
     return messages
 
 
@@ -335,16 +377,17 @@ def verify_option_graphics_preset(data: JsonDict, enums: EnumLookup) -> list[str
     root = root_instance(data, OPTION_GRAPHICS_PRESET_ROOT_CLASS)
     root_fields = root["fields"]
     messages: list[str] = []
-    _expect_keyed_target_list(
-        data,
-        root_fields[OPTION_GRAPHICS_PRESET_CULLING_LIST],
-        OPTION_GRAPHICS_PRESET_CULLING_QUALITY_FIELD,
-        OPTION_GRAPHICS_PRESET_CULLING_EXPECTED_QUALITIES,
-        OPTION_GRAPHICS_PRESET_CULLING_TARGETS,
-        enums,
-        messages,
-        "OptionGraphicsPreset.CullingSettings",
-    )
+    for name, targets in OPTION_GRAPHICS_PRESET_TARGETS.items():
+        _expect_keyed_target_list(
+            data=data,
+            refs=root_fields[name],
+            key_field=OPTION_GRAPHICS_PRESET_QUALITY_FIELD,
+            expected_keys=OPTION_GRAPHICS_PRESET_EXPECTED_QUALITIES,
+            targets=targets,
+            enums=enums,
+            messages=messages,
+            context=f"OptionGraphicsPreset.{name}",
+        )
     return messages
 
 
@@ -423,6 +466,36 @@ def verify_grass_culling(data: JsonDict, enums: EnumLookup) -> list[str]:
     return messages
 
 
+def verify_moss_culling(data: JsonDict, enums: EnumLookup) -> list[str]:
+    root = root_instance(
+        data=data,
+        class_suffix=MOSS_CULLING_ROOT_CLASS,
+    )
+    messages: list[str] = []
+    _expect_field_targets(
+        target=root["fields"],
+        targets=MOSS_CULLING_TARGETS,
+        enums=enums,
+        messages=messages,
+    )
+    return messages
+
+
+def verify_foliage_manager(data: JsonDict, enums: EnumLookup) -> list[str]:
+    root = root_instance(
+        data=data,
+        class_suffix=FOLIAGE_MANAGER_ROOT_CLASS,
+    )
+    messages: list[str] = []
+    _expect_field_targets(
+        target=root["fields"],
+        targets=FOLIAGE_MANAGER_TARGETS,
+        enums=enums,
+        messages=messages,
+    )
+    return messages
+
+
 def _find_pc_graphics_presets(data: JsonDict, root_fields: JsonDict) -> list[JsonDict]:
     entries = [
         entry
@@ -459,7 +532,7 @@ def _expect_same_instance_payload(
     actual_names = set(actual) - ignored_fields
     if expected_names != actual_names:
         messages.append(
-            f"{context}: field mismatch versus PC_Highest: "
+            f"{context}: field mismatch versus the source option or preset: "
             f"missing={sorted(expected_names - actual_names)}, "
             f"extra={sorted(actual_names - expected_names)}"
         )
@@ -484,14 +557,16 @@ def _expect_same_instance_payload(
             actual_instance = instance(data, actual_value)
             if expected_instance.get("_class") != actual_instance.get("_class"):
                 messages.append(
-                    f"{context}.{name}: class mismatch versus PC_Highest: "
+                    f"{context}.{name}: class mismatch versus the source option or preset: "
                     f"{expected_instance.get('_class')!r} != "
                     f"{actual_instance.get('_class')!r}"
                 )
                 continue
             expected_fields = expected_instance.get("fields")
             actual_fields = actual_instance.get("fields")
-            if not isinstance(expected_fields, dict) or not isinstance(actual_fields, dict):
+            if not isinstance(expected_fields, dict) or not isinstance(
+                actual_fields, dict
+            ):
                 messages.append(f"{context}.{name}: referenced instance has no fields")
                 continue
             _expect_same_instance_payload(
@@ -502,14 +577,20 @@ def _expect_same_instance_payload(
                 f"{context}.{name}",
                 visited_refs=visited_refs,
             )
-        elif isinstance(expected_value, list) and _contains_instance_refs(expected_value):
-            if not isinstance(actual_value, list) or len(expected_value) != len(actual_value):
+        elif isinstance(expected_value, list) and _contains_instance_refs(
+            expected_value
+        ):
+            if not isinstance(actual_value, list) or len(expected_value) != len(
+                actual_value
+            ):
                 messages.append(f"{context}.{name}: reference list shape mismatch")
                 continue
             for index, (expected_item, actual_item) in enumerate(
                 zip(expected_value, actual_value)
             ):
-                if not _is_instance_ref(expected_item) or not _is_instance_ref(actual_item):
+                if not _is_instance_ref(expected_item) or not _is_instance_ref(
+                    actual_item
+                ):
                     messages.append(
                         f"{context}.{name}[{index}]: expected compatible instance ref"
                     )
@@ -655,6 +736,4 @@ def _expect_keyed_exact_target_list(
             )
         entry_messages: list[str] = []
         _expect_field_targets(entry, entry_targets, enums, entry_messages)
-        messages.extend(
-            f"{context}[{index}].{message}" for message in entry_messages
-        )
+        messages.extend(f"{context}[{index}].{message}" for message in entry_messages)

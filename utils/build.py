@@ -12,9 +12,11 @@ from .enums import EnumLookup
 from .package import read_version, write_mod_archive, write_mod_assets
 from .patches import (
     patch_app_streaming,
+    patch_foliage_manager,
     patch_graphics_manager,
     patch_graphics_preset,
     patch_grass_culling,
+    patch_moss_culling,
     patch_option_graphics,
     patch_option_graphics_preset,
     patch_post_effect_common,
@@ -23,15 +25,16 @@ from .patches import (
 from .pyreuser3_cached import CachedREUser3Converter
 from .verify import (
     verify_app_streaming,
+    verify_foliage_manager,
     verify_graphics_manager,
     verify_graphics_preset,
     verify_grass_culling,
+    verify_moss_culling,
     verify_option_graphics,
     verify_option_graphics_preset,
     verify_post_effect_common,
     verify_ray_tracing_for_stage,
 )
-
 
 PatchFn = Callable[[dict, EnumLookup], list[str]]
 VerifyFn = Callable[[dict, EnumLookup], list[str]]
@@ -61,7 +64,9 @@ TASKS = [
         verify_ray_tracing_for_stage,
     ),
     User3Task(
-        Path("natives/STM/GameDesign/Camera/PostEffect/PostEffectCommonSceneBank.user.3"),
+        Path(
+            "natives/STM/GameDesign/Camera/PostEffect/PostEffectCommonSceneBank.user.3"
+        ),
         patch_post_effect_common,
         verify_post_effect_common,
     ),
@@ -76,7 +81,9 @@ TASKS = [
         verify_option_graphics_preset,
     ),
     User3Task(
-        Path("natives/STM/System/SystemSetting/AppStreamingControllerManagerSetting.user.3"),
+        Path(
+            "natives/STM/System/SystemSetting/AppStreamingControllerManagerSetting.user.3"
+        ),
         patch_app_streaming,
         verify_app_streaming,
     ),
@@ -84,6 +91,20 @@ TASKS = [
         Path("natives/STM/System/SystemSetting/GrassCullingSetting.user.3"),
         patch_grass_culling,
         verify_grass_culling,
+    ),
+    User3Task(
+        relative_path=Path(
+            "natives/STM/System/SystemSetting/MossCullingSetting.user.3"
+        ),
+        patch=patch_moss_culling,
+        verify=verify_moss_culling,
+    ),
+    User3Task(
+        relative_path=Path(
+            "natives/STM/System/SystemSetting/FoliageManagerSetting.user.3"
+        ),
+        patch=patch_foliage_manager,
+        verify=verify_foliage_manager,
     ),
 ]
 
@@ -194,7 +215,9 @@ def _verify_outputs(
         print(f"Verifying {target}")
         data = converter.repack(target)
         messages = task.verify(data, enums)
-        failures.extend(f"{task.relative_path.as_posix()}: {message}" for message in messages)
+        failures.extend(
+            f"{task.relative_path.as_posix()}: {message}" for message in messages
+        )
     if failures:
         details = "\n".join(f"- {failure}" for failure in failures)
         raise AssertionError(f"verification failed:\n{details}")
@@ -237,7 +260,9 @@ def _list_archive_members(archive_path: Path) -> list[str]:
     import zipfile
 
     with zipfile.ZipFile(archive_path, "r") as archive:
-        return [f"{info.filename} ({info.file_size} bytes)" for info in archive.infolist()]
+        return [
+            f"{info.filename} ({info.file_size} bytes)" for info in archive.infolist()
+        ]
 
 
 def _clean_output_dir(output_dir: Path, workspace_root: Path) -> list[str]:
