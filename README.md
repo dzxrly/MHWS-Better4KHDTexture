@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/dzxrly/MHWS-Better4KHDTexture/releases/latest"><img src="https://img.shields.io/github/v/release/dzxrly/MHWS-Better4KHDTexture?filter=v%2A&amp;style=flat-square&amp;logo=github" alt="Latest release"></a>
-  <a href="https://www.nexusmods.com/monsterhunterwilds/mods/5364"><img src="https://img.shields.io/badge/Nexus%20Mods-9C4F15?style=flat-square" alt="Nexus Mods"></a>
+  <a href="https://www.nexusmods.com/monsterhunterwilds/mods/5364"><img src="https://img.shields.io/badge/Nexus%20Mods-Graphics%20Enhancement-F97316?style=flat-square" alt="Graphics Enhancement on Nexus Mods"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/dzxrly/MHWS-Better4KHDTexture?style=flat-square" alt="MIT License"></a>
 </p>
 
