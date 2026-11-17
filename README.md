@@ -1,4 +1,4 @@
-<h1 align="center">Better 4K HD Texture</h1>
+<h1 align="center">Graphics Enhancement</h1>
 
 <p align="center">A PC graphics mod for <strong>Monster Hunter Wilds</strong></p>
 

@@ -1,4 +1,4 @@
-<h1 align="center">Better 4K HD Texture</h1>
+<h1 align="center">圖形效果增強</h1>
 
 <p align="center">適用於 PC 版<strong>《魔物獵人 荒野》</strong>的畫質 MOD</p>
 

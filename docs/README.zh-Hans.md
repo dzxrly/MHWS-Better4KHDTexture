@@ -1,4 +1,4 @@
-<h1 align="center">Better 4K HD Texture</h1>
+<h1 align="center">图形效果增强</h1>
 
 <p align="center">面向 PC 版<strong>《怪物猎人：荒野》</strong>的画质 MOD</p>
 
