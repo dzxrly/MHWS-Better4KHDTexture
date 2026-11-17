@@ -1,0 +1,596 @@
+# Better 4K HD Texture 开发与维护说明
+
+本文件记录本仓库的构建、发布、配置修改与验证约定。用户安装与使用说明见 [README.md](README.md)。
+
+## 静态 LOD 与 Streaming 策略
+
+本项目只修改游戏可序列化的 `user.3` 数据，不包含运行时 hook。当前预设按以下原则处理新版 Renderer/MPMR 数据：
+
+- 将 MPMR LOD 与小物体剔除的参考分辨率固定为 2160p，避免 DLSS 内部分辨率降低时过早切换 LOD。
+- 将普通 meshlet、最低质量 meshlet 和 SpeedTree 的小物体剔除阈值设为 `0.0`。该字段数值越大，剔除越激进。
+- 以增强后的 `PC_Highest` 为唯一模板覆盖全部 12 个 PC usage，只保留各条目的 `_Platform` 与 `_Usage` 身份字段。
+- 同步修改 UI 图形选项映射，使 Mesh、天空/云、光追和小物体剔除相关选项在保存值重新应用后仍保持项目目标。
+- 将 mesh overcommit 路径以及 `_StreamingMeshLimitList` 全部 13 个状态固定到最低 LOD 0。
+- 保留 `_StreamingMeshLimitList` 的质量分组、状态数量及 VRAM 回滞阈值，不改变新版状态机结构。
+- 使用 4096MB mesh streaming 池和 10240MB texture streaming 预算；minimum、OOV、breadth-first 与 VRAM-limit 分辨率均为 1024。
+- 保留纹理列表的 LOWEST 至 HIGHEST 五个索引，但将五档实际载荷全部统一到同一套最高配置。
+- 将普通 streaming 资源的过期时间从 60 帧提高到 300 帧，对话状态的 6000 帧保持不变。
+- 普通游戏保护 LOD0/mip0 至 40 米，过场保护至 50 米，同时把淡入预加载范围提高到 192 米。
+- 使用 0.5 秒 dithered LOD 过渡，并关闭 shadow LOD、shadow cache LOD 与两种 shadow caster culling。
+- PC 阴影质量设为 `HIGHEST`（4），阴影距离统一选用原版 `FAR` 档，远景阴影采用原版高档。
+- 关闭苔藓距离剔除和植被专用的 200 米纹理流送距离阈值。
+- 纹理、纹理过滤、植被密度、阴影质量与距离、远景阴影、环境光遮蔽和沙雪水选项使用原版最高档载荷。
+
+这些修改可以覆盖相关 `user.3` 暴露出的静态 LOD/Streaming 路径，但不会禁用模型资源自身写死的 LOD，也不会设置运行时的
+`via.render.MPMR.DisableLOD`。
+
+## 后处理设置
+
+`GraphicsPreset.user.3` 的全部 12 个 PC usage 将普通雾、体积雾、胶片颗粒、镜头光晕、God Ray 和镜头畸变开关设为关闭。
+这组修改只调整已有预设字段；抗锯齿、局部曝光、Echo、对比度和亮度设置不在本组调整范围内。
+
+`PostEffectCommonSceneBank.user.3` 的 3 个体积雾控制参数全部设为关闭，实际将其中 2 个开启的 `_Enabled` 改为 `false`。
+该修改在对应 Common 场景参数被请求时生效，地图覆盖范围仍需游戏内验证。
+
+## 本地构建
+
+```powershell
+conda activate torch
+python -m pip install -r requirements.txt
+python tools/build_data.py download
+python main.py
+```
+
+本项目要求 `PyREUser3>=0.8.0`：可读 JSON 显示游戏运行时使用的有符号 Fixed ID，repack JSON 则保留稳定的无符号位模式，
+供构建逻辑按枚举身份安全匹配与回封。
+
+构建完成后会生成：
+
+- `output/Better4KHDTexture_<version>.zip`
+- `output/output.log`
+
+`version.json` 中的 `version` 字段会写入 `modinfo.ini`，也会用于 zip 文件名。
+
+## 构建数据
+
+`data/rszMHWS.json` 和 `data/il2cpp_dump.json` 体积过大，不再提交到普通 Git 历史中。它们会压缩成 GitHub Release
+assets，存放在专用的 `build-data` release：
+
+- `rszMHWS.json.gz`
+- `rszMHWS.json.gz.sha256`
+- `il2cpp_dump.json.gz`
+- `il2cpp_dump.json.gz.sha256`
+
+维护者在本地更新或初始化这些大文件后，运行：
+
+```powershell
+python tools/build_data.py upload
+```
+
+脚本会创建或更新 `build-data` release，并覆盖上传同名 assets。上传需要本机已安装并登录 GitHub CLI：
+
+```powershell
+gh auth login
+```
+
+本地 clone 后如缺少大文件，运行：
+
+```powershell
+python tools/build_data.py download
+```
+
+脚本会下载、校验并解压回 `data/`。更多用法见 `tools/README.md`。
+
+## GitHub Actions 发布
+
+`.github/workflows/release.yml` 会在以下场景构建并发布：
+
+- 推送 `v*` tag，例如 `v1.6`
+- 在 Actions 页面手动点击 Run workflow
+
+手动运行时不需要填写参数。工作流会读取 `version.json` 的 `version` 字段作为 release tag；如果版本号没有 `v` 前缀，会自动补成
+`v<version>`。如果 tag 不存在，工作流会自动创建并推送 tag。
+
+工作流会安装 `requirements.txt`，执行 `python tools/build_data.py download` 取回构建数据，然后执行 `python main.py`，检查
+`output/*.zip` 和 `output/output.log`，最后把这两个文件作为 GitHub Release assets 发布。如果 release 已存在，会覆盖同名
+assets。
+
+## 项目结构
+
+- `main.py`：构建入口，调用 `utils.build.main()`
+- `utils/build.py`：构建流程、输出清理、patch、verify、打包调度
+- `utils/__init__.py`：集中维护目标属性和目标数值
+- `utils/patches.py`：读取 `utils/__init__.py` 中的目标定义，修改构建任务中的十个 `user.3`；Grass 文件由
+  `patch_grass_culling()` 处理
+- `utils/verify.py`：读取同一份目标定义，构建后校验字段值
+- `utils/post_effect.py`：按 GUID 和参数类型校验 Common 场景库中已有的体积雾控制参数
+- `utils/package.py`：写入 `modinfo.ini`、复制 `cover.png`、生成 zip
+- `utils/pyreuser3_cached.py`：封装 `PyREUser3` 的读取、repack 和 pack
+- `utils/repack.py`：访问 repack JSON 的 helper，例如 `root_instance()`、`iter_ref_fields()`、`set_field()`
+- `utils/enums.py`：读取 `data/Enums_Internal.json` 并解析 enum 值
+- `tools/build_data.py`：上传/下载大体积构建数据的 GitHub Release asset 工具
+- `data/natives/STM/`：按游戏相对路径保存构建使用的源 `user.3`
+- `example/`：示例输出结构
+- `assets/cover.png`：打包时复制到 mod 根目录
+
+## 修改索引
+
+需要调整目标属性或目标数值时，优先修改 `utils/__init__.py`。`utils/patches.py` 和 `utils/verify.py`
+会读取同一份定义，通常不需要同步改两处逻辑。构建源文件按游戏相对路径位于 `data/natives/STM/`，`utils.build.TASKS`
+只包含本索引列出的 GraphicsManager、GraphicsPreset、RayTracingForStage、PostEffectCommon、OptionGraphics、OptionGraphicsPreset、AppStreaming、GrassCulling、MossCulling 和 FoliageManager。
+枚举字段必须通过 `data/Enums_Internal.json` 的类型与成员名解析，不能根据整数大小推断画质顺序。
+
+### `GraphicsManagerSetting.user.3`
+
+源文件：`data/natives/STM/System/SystemSetting/GraphicsManagerSetting.user.3`
+
+- root class：`GraphicsManagerSetting`
+- patch：`utils.patches.patch_graphics_manager`
+- verify：`utils.verify.verify_graphics_manager`
+- `_StreamingExpirationFrameCount`: 300
+
+只修改普通 streaming 资源的过期帧数；`_Dialogue_StreamingExpirationFrameCount` 保持原始的 6000。
+
+### `GraphicsPreset.user.3`
+
+源文件：
+
+data/natives/STM/System/SystemSetting/GraphicsPreset.user.3
+
+目标 root class：
+
+AppGraphicsSettingPreset
+
+当前 patch 函数：
+
+utils.patches.patch_graphics_preset
+
+目标定义位置：
+
+`utils/__init__.py`
+
+结构定位常量：
+
+GRAPHICS_ROOT_CLASS
+
+- AppGraphicsSettingPreset
+
+GRAPHICS_MESH_RENDERER_FIELD
+
+- _MeshRendererSetting
+
+GRAPHICS_MPMR_FIELD
+
+- _MPMR
+
+GRAPHICS_STREAMING_TEXTURE_SETTING_LIST
+
+- _StreamingTextureSettingList
+
+GRAPHICS_STREAMING_TEXTURE_SETTING_QUALITY_FIELD
+
+- _Quality
+
+GRAPHICS_STREAMING_TEXTURE_LIMIT_LIST
+
+- _StreamingTextureLimitList
+
+GRAPHICS_STREAMING_TEXTURE_LIMIT_MATCH_FIELD
+
+- _VRAMThresholdSizeMB
+
+GRAPHICS_RAY_TRACING_MANAGER_FIELD
+
+- _RayTracingManagerSetting
+
+GRAPHICS_DATA_LIST
+
+- _DataList
+
+GRAPHICS_PLATFORM_FIELD
+
+- _Platform
+
+GRAPHICS_USAGE_FIELD
+
+- _Usage
+
+GRAPHICS_RAY_TRACING_FIELD
+
+- _RayTracing
+
+GRAPHICS_EXPERIMENTAL_RAY_TRACE_FIELD
+
+- _ExperimentalRayTrace
+
+GRAPHICS_STREAMING_MESH_LIMIT_LIST
+
+- _StreamingMeshLimitList
+
+GRAPHICS_STREAMING_MESH_LIMIT_MATCH_FIELD
+
+- _MeshQuality
+
+目标属性和目标数值：
+
+GRAPHICS_MESH_RENDERER_TARGETS
+
+- _DitheredLodTransitionTime: 0.5
+- _UseGpuOcclusionCulling: true
+- _EnableShadowLod: false
+- _EnableShadowCacheUseLod: false
+
+GRAPHICS_MPMR_TARGETS
+
+- _InstanceOcclusionTestBias: 3
+- _ClusterOcclusionTestBias: 3
+- _ContributePreZForCull: true
+- _ShadowLodUsingMainCamera: true
+- _PreZForCullingUsingVisibilityBufferHiZ: true
+- _StreamingFeedbackShadowCastLOD: true
+- _MeshletSmallObjectCullingLowest: 0.0
+
+GRAPHICS_STREAMING_TEXTURE_SETTING_EXPECTED_QUALITIES
+
+- LOWEST
+- LOW
+- STANDARD
+- HIGH
+- HIGHEST
+
+以上五个 `_Quality` 只作为列表索引保留；构建会按顺序验证五档完整存在，并将每一档的其余字段统一应用
+`GRAPHICS_STREAMING_TEXTURE_SETTING_TARGETS`。这样无论游戏通过质量枚举还是 VRAM 自动路径命中哪一项，实际纹理载荷都相同。
+
+GRAPHICS_STREAMING_TEXTURE_SETTING_TARGETS
+
+- _StreamingTextureLoadLevelBias: 0
+- _StreamingBudgetSizeMB: 10240
+- _BreadthFirstStreaming: true
+- _BreadthFirstShortcutResolution: StreamingTextureResolution_1024
+- _VramBudgetLimitResolution: StreamingTextureResolution_1024
+- _OutOfViewTextureStreamingResolution: MPMROOVTextureResolution_1024
+- _MinimumStreamingTextureResolution: MinimumStreamingTextureResoltuion_1024
+- _MaximumStreamingTextureResolution: MaximumStreamingTextureResolution_8192
+- _ClosestMaximumStreamingTextureResolution: MaximumStreamingTextureResolution_8192
+- _ClosestStreamingTextureDistance: 40.0
+
+GRAPHICS_STREAMING_TEXTURE_LIMIT_EXPECTED_THRESHOLDS
+
+- 0
+- 7000
+- 10000
+- 13000
+- 17000
+
+GRAPHICS_STREAMING_TEXTURE_LIMIT_TARGETS
+
+- _StreamingBudgetLimitSizeMB: 10240
+
+以上五个 VRAM 阈值只作为列表选择键保留；构建会验证原始顺序，并把五项预算上限全部统一为 10240MB。
+因此无论显存检测路径命中哪一项，都不会回退到较小的 texture streaming budget。
+
+GRAPHICS_RAY_TRACING_MANAGER_TARGETS
+
+- _DiffuseRayMaxIterationCount: 1500
+- _SpecularRayMaxIterationCount: 2000
+
+GRAPHICS_PC_PLATFORM
+
+- _Platform: 5
+
+GRAPHICS_PC_EXPECTED_USAGES
+
+- Default
+- CharMake
+- CutScene
+- Default_RayTrace
+- CharMake_RayTrace
+- CutScene_RayTrace
+- PC_Lowest
+- PC_Low
+- PC_Middle
+- PC_High
+- PC_Highest
+- GI_RayTrace
+
+构建先用下列目标增强原始 `PC_Highest`，再把它的完整顶层字段载荷及 `_RayTracing`、`_ExperimentalRayTrace`
+嵌套载荷复制到其余 11 个 PC usage。复制时只保留每个条目原有的 `_Platform` 与 `_Usage`；缺少、多出或重复任何 PC usage，
+以及字段结构不兼容，都会使构建或验证失败。
+
+GRAPHICS_PC_PRESET_TARGETS
+
+- _StreamingTextureQuality: HIGHEST
+- _MeshQuality: 0
+- _SamplerQuality: Anisotropic16
+- _SecondarySamplerQuality: Anisotropic16
+- _ShadowQuality: HIGHEST（4）
+- _LowQualitySDFShadow: false
+- _Fog_Enable: false
+- _VolumetricFogControl_Enable: false
+- _VolumetricFogControl_TextureSize: 1
+- _FilmGrain_Enable: false
+- _LensFlare_Enable: false
+- _GodRay_Enable: false
+- _LensDistortionSetting: OFF
+- _UseLowResolutionSDF: false
+- _GlobalSDFUpdateFrequency: Medium
+- _ShadowCasterCulling: false
+- _EnhancedShadowCasterCulling: false
+- _LODResolustion: MPMRLodResolution_2160p
+- _SmallObjectCullingResolution: MPMRSmallObjectCullingResolution_2160p
+- _MeshletSmallObjectCulling: 0.0
+- _MeshletLodBias: 0
+- _LodBias: 0
+- _LodRate: 1.0
+- _StreamingMeshMinimumLOD: 0
+- _StreamingMeshletMinimumLOD: 0
+- _MeshStreamingSize: 4096
+- _AllowOverCommitMesh: true
+- _StreamingMeshOvercommitLOD: 0
+- _SpeedTreeSmallObjectCulling: 0.0
+- _LodBiasSpeedTree: 0
+- _StreamingMeshMinimumLODSpeedTree: 0
+- _TextureLoadLevelBias: 0
+- _StreamingTextureLoadLevelBias: 0
+- _ShadowCastLODBiasMPMR: 0.0
+- _ShadowCastSpeedTreeLODBiasMPMR: 0.0
+- _ShadowCastDistanceType: FAR
+- _MeshCullingSetting: HIGHEST
+- _GrassCullingMode: FAR
+- _EnableFoliageDensityCulling: false
+- _VRSSetting: Off
+- _GIPointCloudQuality: 0
+- _GIQuality: 0
+- _UseLowGround: false
+- _UseLowShellFur: false
+- _UseLowWindSimulation: false
+- _UseLowWaterSimulation: false
+- _AOSetting: LOW（原版环境光遮蔽 HIGH 菜单档的底层值）
+- _SSAO_HalfResolution: false
+- _GeometryAO_HalfResolution: false
+- _ParticleLightingResolution: Best
+- _StrandShadingQuality: 0
+- _Bloom_IsHighPrecision: true
+- _MainRaymarchResolution: Full
+- _IBLRaymarchResolution: Full
+- _IBLRaymarchScale: 1.0
+- _IBLPartialDrawFrame: 4
+
+`_StrandShadingQuality` 在目标 schema 中是未绑定 enum 的整数；当前值 `0` 对应官方预设中的 High。
+
+`_ShadowCastDistanceType` 选择原版 `FAR` 的 3 级级联行，分区值为 `[2, 10, 30, 100]`。根部 `_ShadowDistanceSettings` 表为各平台共用数据，原样保留。
+
+GRAPHICS_PC_RAY_TRACING_TARGETS
+
+- _Enable: true
+- _Quality: HIGH（3）
+- _GIEnable: true
+- _ReflectionEnable: true
+- _ShadowEnable: true
+- _TransparentEnable: true
+- _EnableLod: true
+- _EnableOverwriteLod: true
+- _OverwriteLod: LOD_0（0）
+- _FoliageRayTracingLodOffset: 0
+
+GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_TARGETS
+
+- _RayTracingResRatio: 1.0
+- _UseRayTracingAO: true
+- _DiffuseResolution: 1
+- _SpecularResolution: 1
+- _UseSolidAngleCulling: false
+
+GRAPHICS_PC_EXPERIMENTAL_RAY_TRACE_RANGE_TARGETS
+
+- _DiffuseRayLength: 150.0
+- _SpecularRayLength: 300.0
+- _FrustumFarPlane: 300.0
+
+上述普通与实验性光追目标（包括射线长度和 frustum 范围）先应用到 `PC_Highest` 模板，再随完整模板覆盖到全部
+12 个 PC usage，使普通 RT 几何与植被统一使用 LOD0，并消除 usage 切换造成的预设差异。`_Quality` 和 `_OverwriteLod`
+分别通过 `via.render.RenderConfig.Quality.HIGH` 与 `via.render.RayTracingLod.LOD_0` 解析；光追菜单没有 HIGHEST 档，官方
+最高档身份是 HIGH，因此不根据通用 Quality 枚举中的整数大小擅自选择 HIGHEST。
+
+当前 schema 没有单独名为 Global Ray Tracing 的可序列化总开关；全部 12 个 PC usage 的 `_Enable` 以及 GI、反射、阴影和
+透明光追子开关构成全局预设覆盖。`RayTracingForStageData.user.3` 负责 11 个特定 stage 的实验性光追覆盖，它不替代这些
+总开关，而是在第二阶段加入 `utils.build.TASKS`，用于防止进入对应 stage 后回落到较短射线范围或重新启用实体角剔除。
+
+GRAPHICS_STREAMING_MESH_LIMIT_EXPECTED_ENTRY_COUNT
+
+- 13
+
+GRAPHICS_STREAMING_MESH_LIMIT_TARGETS
+
+- _StreamingMeshMinimumLodLimit: 0
+- _StreamingMeshletMinimumLodLimit: 0
+
+新版 `_StreamingMeshLimitList` 使用 `_MeshQuality` 与 `_DownVramThresholdMB` / `_UpVramThresholdMB`
+组成带回滞的 mesh streaming 状态表。构建过程保留全部 13 个条目、质量分组及阈值，同时把所有状态的
+mesh/meshlet 最低 LOD 统一为 0，防止任何动态命中结果重新限制到 LOD1/2。
+
+### `RayTracingForStageData.user.3`
+
+源文件：`data/natives/STM/System/SystemSetting/RayTracingForStageData.user.3`
+
+- root class：`RayTracingForStageData`
+- patch：`utils.patches.patch_ray_tracing_for_stage`
+- verify：`utils.verify.verify_ray_tracing_for_stage`
+
+`_DataList` 必须恰好按 ST101、ST102、ST103、ST104、ST105、ST402、ST403、ST502、ST405、ST204、ST404 的原始顺序包含
+11 个条目。`_Stage` 是 stage 身份键，patch 只校验其枚举值与顺序，绝不写入；源文件中不存在的 ST201、ST202、ST203、
+ST401 和 ST503 不会被推测或补造。每个条目的 `_ExperimentalRayTrace` 只统一以下五项：
+
+- `_DiffuseRayLength`: 150.0
+- `_SpecularRayLength`: 300.0
+- `_FrustumFarPlane`: 300.0
+- `_UseRayTracingAO`: true
+- `_UseSolidAngleCulling`: false
+
+ST101 的 specular ray 与 frustum 原本已为 300，因此预期修改 3 项；其余 10 个 stage 各修改 5 项，合计严格为 53 项。
+`_FrustumMaxExpand`、`_SolidAngleCullingThreshold`、`_IBLBoost`、`_TransparentMultiplier`、所有降噪器字段及其他非目标字段均
+保持源文件值。普通光追的 `_EnableLod`、`_EnableOverwriteLod`、`_OverwriteLod` 与 `_FoliageRayTracingLodOffset` 不存在于
+该 stage 数据结构中，因此仍由 `GraphicsPreset.user.3` 的 12 个 PC usage 统一控制。
+
+### `PostEffectCommonSceneBank.user.3`
+
+源文件：`data/natives/STM/GameDesign/Camera/PostEffect/PostEffectCommonSceneBank.user.3`
+
+- root class：`PostEffectSceneBank`
+- patch：`utils.patches.patch_post_effect_common`
+- verify：`utils.verify.verify_post_effect_common`
+- 目标定义：`POST_EFFECT_COMMON_VFOG_TARGETS`，`_Enabled=false`
+
+构建定位 `_Effects[17]._DataArray`，验证以下 3 个 holder GUID 及其 `ace.PostEffect.cVolumetricFogControlParam` 类型：
+
+- `38153bd0-948d-41bb-8b63-e53881a1774f`
+- `9b1174a9-8c34-4666-ada6-c96e097043fc`
+- `39167900-43be-4017-8086-f9b144db66b7`
+
+只修改已有的 `_Enabled`，不改变 holder 顺序、GUID、场景请求、插值、普通雾或具体雾体的密度等参数。
+条目数量、GUID、类型或布尔字段不符时，构建与验证均失败，不新增实例或字段。
+
+### `OptionGraphicsData.user.3`
+
+源文件：`data/natives/STM/GameDesign/Common/Option/OptionGraphicsData.user.3`
+
+- root class：`OptionGraphicsData`
+- patch：`utils.patches.patch_option_graphics`
+- verify：`utils.verify.verify_option_graphics`
+
+`_MeshQuality._Items` 必须按 HIGHEST、HIGH、STANDARD 保持 3 个 UI 选项；`_Option` 是菜单身份字段，patch 只校验其原始
+身份与顺序，绝不写入。构建只把每一项的实际 `_Value` 设为与 `GRAPHICS_PC_PRESET_TARGETS._MeshQuality` 相同的 `0`。
+
+`_SkyCloudQuality._Items` 必须按 HIGHEST、HIGH、STANDARD、LOW、LOWEST、SIMPLIFIED 保持 6 个 UI 选项；构建保留各项
+`_Option` 与所有非目标字段，只统一以下运行时载荷。该数组的条目没有单独的 `_Value` 包装字段，因此这 4 个字段就是对应
+选项的实际载荷：
+
+- `_MainRaymarchResolution`: Full
+- `_IBLRaymarchResolution`: Full
+- `_IBLRaymarchScale`: 1.0
+- `_IBLPartialDrawFrame`: 4
+
+`_RayTracing._Items` 必须按 HIGH、STANDARD、LOW、OFF 保持 4 个 UI 选项。`_Option` 与 Mesh 菜单一样只用于校验身份和
+顺序，patch 绝不写入该字段。HIGH、STANDARD、LOW 三个非 OFF 条目的其余全部载荷统一为：
+
+- `_Enable`: true
+- `_Quality`: HIGH（3）
+- `_RayTracingResRatio`: 1.0
+
+OFF 条目则固定为 `_Enable: false`、`_Quality: NONE`、`_RayTracingResRatio: 1.0`，确保关闭语义不被破坏。因此 UI 中保存的
+Mesh、天空/云或任一非 OFF 光追档位重新应用时，目标字段仍与静态 `GraphicsPreset` 一致。
+
+纹理、纹理过滤、植被密度、阴影质量、阴影距离、远景阴影、环境光遮蔽和沙雪水保留各自的 `_Option` 和原始顺序，各档应用对应的原版最高档载荷。纹理的 `HIGHEST` 保留无高清纹理包时的 `-1` 值，其余档位在无高清纹理包时统一采用原版 `HIGH` 的纹理级别。沙雪水包含地表及阴影细分级别 `4`、着色器切换距离 `500` 米、过渡距离 `60` 米、地表 clipmap 最大范围 `1024` 米和各关卡的细节层级切换参数。
+
+### `OptionGraphicsPresetData.user.3`
+
+源文件：`data/natives/STM/GameDesign/Common/Option/OptionGraphicsPresetData.user.3`
+
+- root class：`OptionGraphicsPresetData`
+- patch：`utils.patches.patch_option_graphics_preset`
+- verify：`utils.verify.verify_option_graphics_preset`
+
+`_CullingSettings` 必须按 ULTRA、HIGH、STANDARD、LOW、LOWEST 保持 5 个预设档位；该表以 `_Quality` 而非 `_Option` 作为
+身份字段，patch 只校验而不写入。构建保留其他列表，
+并把五档实际剔除载荷统一为：
+
+- `_Value`: HIGHEST，对应运行时 `_MeshCullingSetting`
+- `_SmallObjectCulling`: 0.0，对应运行时 `_MeshletSmallObjectCulling`
+- `_MPMRSmallObjectCullingResolution`: 2160p，对应运行时 `_SmallObjectCullingResolution`
+
+独立的 `_SandSnowWaterQuality` 表也按 `_Quality` 保留原有身份和顺序，五档的 `_Value` 都设为 `HIGHEST`。总体预设 `_Settings` 中的菜单选择索引保留原值。
+
+### `AppStreamingControllerManagerSetting.user.3`
+
+源文件：
+
+data/natives/STM/System/SystemSetting/AppStreamingControllerManagerSetting.user.3
+
+目标 root class：
+
+AppStreamingControllerManagerSetting
+
+当前 patch 函数：
+
+utils.patches.patch_app_streaming
+
+目标定义位置：
+
+`utils/__init__.py`
+
+只修改 `_PlatformData` 中 `_Platform` 为 0 和 1 的项目，对应 Default 与 PC。目标包括平台级预加载设置、`_ProtectData` 和
+`_ProtectDataEventPlaying`。
+
+结构定位常量：
+
+APP_STREAMING_ROOT_CLASS
+
+- AppStreamingControllerManagerSetting
+
+APP_STREAMING_PLATFORM_DATA_LIST
+
+- _PlatformData
+
+APP_STREAMING_PLATFORM_FIELD
+
+- _Platform
+
+目标属性和目标数值：
+
+APP_STREAMING_SELECTED_PLATFORMS
+
+- 0: Default
+- 1: PC
+
+APP_STREAMING_PLATFORM_TARGETS
+
+- _BaseFov: 40.0
+- _PreloadingRangeInFade: 192.0
+
+APP_STREAMING_PROTECT_TARGETS
+
+- _ProtectData index 0: _Range 40.0, _MipLevel 0, _LodLevel 0
+- _ProtectData index 1: _Range 80.0, _MipLevel 1, _LodLevel 1
+- _ProtectDataEventPlaying index 0: _Range 50.0, _MipLevel 0, _LodLevel 0
+- _ProtectDataEventPlaying index 1: _Range 100.0, _MipLevel 1, _LodLevel 1
+
+### `GrassCullingSetting.user.3`
+
+源文件：`data/natives/STM/System/SystemSetting/GrassCullingSetting.user.3`
+
+- root class：`GrassCullingSetting`
+- patch：`utils.patches.patch_grass_culling`
+- verify：`utils.verify.verify_grass_culling`
+- `_EnableDensityCulling`: false
+- `_InstanceNum`: 120000
+- 4 个 `_Data` 与 12 个 `_StageData` 的 `_RangeStart`、`_RangeAnimation` 均为原值的 1.5 倍
+- 所有上述条目的 `_GlobalDensity` 至少为 1.0，`_DensityCullingFar` 至少为 800.0
+
+普通 `_Data` 目标在 `GRASS_CULLING_DATA_TARGETS` 中按原文件顺序显式列出。`_StageData` 则由 `GRASS_CULLING_STAGE_DATA_TARGETS` 按
+`(app.FieldDef.STAGE_Fixed, _CullingMode)` 身份映射，patch 与 verify 不依赖数组位置，并会拒绝重复、缺失或意外身份，防止游戏更新或条目重排后把参数写到错误关卡。
+
+### `MossCullingSetting.user.3` 和 `FoliageManagerSetting.user.3`
+
+两个源文件均位于 `data/natives/STM/System/SystemSetting/`。苔藓配置将 `_Enable` 设为 `false`。游戏计算着色器路径据此将距离剔除的起点替换为浮点最大值，默认与各关卡的距离、过渡和容量数据仍保留原值。
+
+植被配置将 `_UseTextureStreamingDistanceThreshold` 设为 `false`，关闭该管理器专用的 200 米阈值。全局纹理流送预算仍由 `GraphicsPreset.user.3` 控制。
+
+## 修改与验证不变量
+
+- `utils.build.TASKS` 是构建输入的唯一依据，当前包含上面列出的十个文件。
+- patch 与 verify 共用 `utils/__init__.py` 中的目标定义。新增或删除目标字段时，必须确认对应 patch 路径和验证范围仍然一致。
+- enum 目标必须由 `EnumLookup` 解析 `data/Enums_Internal.json` 中的类型与成员，禁止直接依据枚举整数大小推断质量高低。
+- GraphicsPreset 必须按 LOWEST、LOW、STANDARD、HIGH、HIGHEST 顺序包含 5 个 streaming texture setting 条目，且五档实际载荷必须完全命中同一目标。
+- GraphicsPreset 必须按 0、7000、10000、13000、17000MB 顺序包含 5 个 streaming texture limit 条目，保留阈值并统一为 10240MB 预算上限。
+- GraphicsPreset 必须恰好包含预期的 12 个 PC usage；除 `_Platform` 与 `_Usage` 外，其余顶层字段及嵌套引用载荷都必须与增强后的 `PC_Highest` 完全一致。
+- GraphicsPreset 必须包含 13 个 streaming mesh limit 条目，且全部条目的 mesh/meshlet 最低 LOD 都必须为 0；数量不符时构建或验证必须失败。
+- RayTracingForStage 必须保持上述 11 个 stage 的数量、身份与原始顺序，只修改每项嵌套实验性光追块中的五个目标字段；`_Stage` 与降噪器字段不得被写入。
+- OptionGraphics 必须保持 3 个 Mesh、6 个天空/云以及 HIGH、STANDARD、LOW、OFF 共 4 个光追 UI 档位的 `_Option`
+  身份与顺序；所有非 OFF 光追档统一使用 HIGH/全分辨率载荷，OFF 必须保持关闭且任何身份键都不得被 patch 写入。
+- OptionGraphics 的八项最高档映射保留菜单身份与顺序。沙雪水的关卡成员必须在各档之间对应，纹理的无高清包取值单独验证。
+- OptionGraphicsPreset 必须保持 5 个剔除与沙雪水预设档位的身份与顺序，各档使用相同的 Mesh 剔除载荷和最高沙雪水档。
+- GraphicsManager 只修改普通 streaming 资源过期帧数，对话专用过期帧数和其他字段保持源文件值。
+- GrassCulling 必须保持 4 个 `_Data` 和 12 个 `_StageData` 条目；构建保留原有顺序、stage ID 与 culling mode，但 `_StageData` 的写入与验证必须以 `(Fixed stage ID, culling mode)` 身份为准。身份重复、缺失或不在目标集合中时不得继续打包。
+- PostEffectCommon 必须包含预期的 3 个体积雾控制参数，按 GUID 校验身份并将已有 `_Enabled` 设为 `false`；保留所有引用与其他参数。
+- 成功构建必须生成十个已验证的 `user.3`、`modinfo.ini` 和 `cover.png`，最终 zip 恰好包含 12 个成员且不得含有 `TASKS` 之外的配置文件。
+- 修改目标或构建逻辑后必须运行 `python main.py`，并检查 `output/output.log` 中每个文件的变更数量、重建 JSON 与 `Verification passed` 结果。
