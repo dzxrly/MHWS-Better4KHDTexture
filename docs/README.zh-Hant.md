@@ -9,6 +9,15 @@
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-Hans.md">简体中文</a> · <strong>繁體中文</strong></p>
 
+<p align="center">
+  <a href="https://github.com/dzxrly/PyREUser3">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/dzxrly/PyREUser3/branding/powered-by-pyreuser3-simple-dark.svg">
+      <img alt="Powered by PyREUser3" src="https://raw.githubusercontent.com/dzxrly/PyREUser3/branding/powered-by-pyreuser3-simple-light.svg">
+    </picture>
+  </a>
+</p>
+
 <p align="center"><strong><a href="https://github.com/dzxrly/MHWS-Better4KHDTexture/releases/latest">下載最新版</a></strong></p>
 
 ## 畫質調整
@@ -21,22 +30,12 @@
 
 ## 安裝
 
-1. 下載 `MHWILDS.zip`，將其中的 `dinput8.dll` 解壓縮到遊戲根目錄，與 `MonsterHunterWilds.exe` 放在同一層。 [REFramework 發布頁](https://github.com/praydog/REFramework/releases/latest)
-2. 從 MOD 最新發布頁下載 `Better4KHDTexture_<version>.zip`。
-3. 解壓縮後，將其中的 `natives` 資料夾複製到遊戲根目錄，與 `MonsterHunterWilds.exe` 放在同一層。
-4. 啟動遊戲，在 REFramework 選單中展開 **LooseFileLoader**，勾選 **Enable Loose File Loader**。如果遊戲已載入才開啟此選項，請重新啟動遊戲。
+1. 從 MOD 最新發布頁下載 `Better4KHDTexture_<version>.zip`。
+2. 解壓縮後，將其中的 `natives` 資料夾複製到遊戲根目錄，與 `MonsterHunterWilds.exe` 放在同一層。
+3. 啟動遊戲，在 REFramework 選單中展開 **LooseFileLoader**，勾選 **Enable Loose File Loader**。如果遊戲已載入才開啟此選項，請重新啟動遊戲。
 
 從舊版更新時，覆蓋本 MOD 提供的檔案即可。安裝後可在遊戲選單重新套用一次畫質設定，讓新版選項對應生效。
 
 ## 解除安裝
 
 關閉遊戲，移除先前從壓縮檔複製的檔案。透過 MOD 管理器安裝的使用者可以直接在管理器中停用本 MOD。
-
-<p align="center">
-  <a href="https://github.com/dzxrly/PyREUser3">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/dzxrly/PyREUser3/branding/powered-by-pyreuser3-simple-dark.svg">
-      <img alt="Powered by PyREUser3" src="https://raw.githubusercontent.com/dzxrly/PyREUser3/branding/powered-by-pyreuser3-simple-light.svg">
-    </picture>
-  </a>
-</p>
