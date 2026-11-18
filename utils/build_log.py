@@ -14,7 +14,7 @@ class OutputLog:
     def __enter__(self) -> "OutputLog":
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._handle = self.path.open("w", encoding="utf-8", newline="\n")
-        self.line("Better 4K HD Texture build log")
+        self.line(text="Graphics Enhancement build log")
         self.line(f"Started: {datetime.now().isoformat(timespec='seconds')}")
         return self
 
@@ -53,4 +53,3 @@ class OutputLog:
         if self._handle is None:
             raise RuntimeError("OutputLog is not open")
         return self._handle
-

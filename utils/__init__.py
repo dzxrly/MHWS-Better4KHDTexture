@@ -1,4 +1,4 @@
-"""Target definitions for the Better 4K HD Texture user.3 mod package."""
+"""Target definitions for the Graphics Enhancement user.3 mod package."""
 
 from __future__ import annotations
 

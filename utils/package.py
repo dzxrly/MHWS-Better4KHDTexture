@@ -5,9 +5,8 @@ import shutil
 import zipfile
 from pathlib import Path
 
-
-MODINFO_TEMPLATE = """name=Better 4K HD Texture Package DLC
-description=Graphics preset modification for OLD version of the 4K HD Texture Package DLC
+MODINFO_TEMPLATE = """name=Graphics Enhancement
+description=Enhanced graphics settings for Monster Hunter Wilds
 author=Egg Targaryen
 screenshot=cover.png
 category=Model
@@ -39,13 +38,19 @@ def write_mod_assets(package_dir: Path, assets_dir: Path, version: str) -> None:
 
 
 def write_mod_archive(package_dir: Path, output_dir: Path, version: str) -> Path:
-    archive_path = output_dir / f"Better4KHDTexture_{version}.zip"
-    required = [package_dir / "natives", package_dir / "cover.png", package_dir / "modinfo.ini"]
+    archive_path = output_dir / f"GraphicsEnhancement_{version}.zip"
+    required = [
+        package_dir / "natives",
+        package_dir / "cover.png",
+        package_dir / "modinfo.ini",
+    ]
     for path in required:
         if not path.exists():
             raise FileNotFoundError(f"cannot archive missing path: {path}")
 
-    with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+    with zipfile.ZipFile(
+        archive_path, "w", compression=zipfile.ZIP_DEFLATED
+    ) as archive:
         for path in sorted((package_dir / "natives").rglob("*")):
             if path.is_file():
                 archive.write(path, path.relative_to(package_dir).as_posix())

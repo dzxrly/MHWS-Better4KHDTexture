@@ -31,7 +31,7 @@ Higher streaming budgets can increase VRAM usage. The highest texture tier uses 
 
 ## Installation
 
-1. Download `Better4KHDTexture_<version>.zip` from the latest mod release.
+1. Download `GraphicsEnhancement_<version>.zip` from the latest mod release.
 2. Extract the archive and copy its `natives` folder into the game directory, next to `MonsterHunterWilds.exe`.
 3. Launch the game, expand **LooseFileLoader** in the REFramework menu, and check **Enable Loose File Loader**. Restart the game if you enabled it after the game had already loaded.
 

@@ -46,10 +46,10 @@ python main.py
 
 构建完成后会生成：
 
-- `output/Better4KHDTexture_<version>.zip`
+- `output/GraphicsEnhancement_<version>.zip`
 - `output/output.log`
 
-`version.json` 中的 `version` 字段会写入 `modinfo.ini`，也会用于 zip 文件名。
+`version.json` 中的 `version` 字段会写入 `modinfo.ini`，也会用于 zip 文件名。MOD 显示名为 `Graphics Enhancement`，安装包命名为 `GraphicsEnhancement_<version>.zip`。
 
 ## 构建数据
 
@@ -92,8 +92,7 @@ python tools/build_data.py download
 `v<version>`。如果 tag 不存在，工作流会自动创建并推送 tag。
 
 工作流会安装 `requirements.txt`，执行 `python tools/build_data.py download` 取回构建数据，然后执行 `python main.py`，检查
-`output/*.zip` 和 `output/output.log`，最后把这两个文件作为 GitHub Release assets 发布。如果 release 已存在，会覆盖同名
-assets。
+`output/*.zip` 和 `output/output.log`，最后把这两个文件作为 GitHub Release assets 发布。发布标题为 `Graphics Enhancement <version>`，工作流产物为 `GraphicsEnhancement-<version>`。如果 release 已存在，会同步更新标题并覆盖同名 assets。
 
 ## 项目结构
 

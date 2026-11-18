@@ -111,7 +111,7 @@ TASKS = [
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Build the Better 4K HD Texture user.3 mod package."
+        description="Build the Graphics Enhancement user.3 mod package."
     )
     parser.add_argument("--data-dir", type=Path, default=Path("data"))
     parser.add_argument("--assets-dir", type=Path, default=Path("assets"))

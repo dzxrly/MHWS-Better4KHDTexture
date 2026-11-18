@@ -95,7 +95,7 @@ jobs:
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v7
         with:
-          name: Better4KHDTexture-${{ steps.meta.outputs.version }}
+          name: GraphicsEnhancement-${{ steps.meta.outputs.version }}
           path: |
             output/*.zip
             output/output.log
@@ -105,12 +105,13 @@ jobs:
         shell: bash
         env:
           RELEASE_TAG: ${{ steps.meta.outputs.tag }}
-          RELEASE_TITLE: Better 4K HD Texture ${{ steps.meta.outputs.version }}
+          RELEASE_TITLE: Graphics Enhancement ${{ steps.meta.outputs.version }}
         run: |
           if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            gh release edit "${RELEASE_TAG}" --title "${RELEASE_TITLE}"
             gh release upload "${RELEASE_TAG}" output/*.zip output/output.log --clobber
           else
             gh release create "${RELEASE_TAG}" output/*.zip output/output.log \
               --title "${RELEASE_TITLE}" \
-              --notes "Automated build for Better4KHDTexture ${RELEASE_TAG}."
+              --notes "Automated build for Graphics Enhancement ${RELEASE_TAG}."
           fi

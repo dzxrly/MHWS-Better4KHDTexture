@@ -31,7 +31,7 @@
 
 ## 安裝
 
-1. 從 MOD 最新發布頁下載 `Better4KHDTexture_<version>.zip`。
+1. 從 MOD 最新發布頁下載 `GraphicsEnhancement_<version>.zip`。
 2. 解壓縮後，將其中的 `natives` 資料夾複製到遊戲根目錄，與 `MonsterHunterWilds.exe` 放在同一層。
 3. 啟動遊戲，在 REFramework 選單中展開 **LooseFileLoader**，勾選 **Enable Loose File Loader**。如果遊戲已載入才開啟此選項，請重新啟動遊戲。
 
